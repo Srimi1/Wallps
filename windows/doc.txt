@@ -1,0 +1,139 @@
+================================================================================
+                     WALLPS 1.0 — WINDOWS USER & DEVELOPER GUIDE
+================================================================================
+App Name    : Wallps
+Platform    : Microsoft Windows 11 & Windows 10 (64-bit)
+Release     : v1.0.0 (Universal Multi-Platform)
+License     : Apache 2.0
+Repository  : https://github.com/Srimi1/Wallps.git
+================================================================================
+
+1. OVERVIEW
+-----------
+Wallps for Windows is an ultra-minimal, high-performance 4K/8K live video wallpaper
+engine. It shares the exact same futuristic aesthetic, iOS 26 multi-dimensional
+classification matrix, interactive dual desktop simulator, and battery-aware
+occlusion management as the macOS version.
+
+Key Features:
+- 1-Click Instant Wallpaper Application (0ms latency for cached assets)
+- Win32 WorkerW Desktop Attachment (renders behind icons, no click disruption)
+- iOS 26 Multi-Dimensional Filter Matrix (Atmosphere, Display Specs, Sort Flow)
+- Dual Desktop Simulator (Windows 11 Centered Taskbar & macOS Desktop modes)
+- Persistent Active Control Dock (Live thumbnail, 60 FPS status, Pause/Resume)
+- 100% Telemetry-Free & Privacy Preserving
+
+--------------------------------------------------------------------------------
+2. SYSTEM REQUIREMENTS
+--------------------------------------------------------------------------------
+- Operating System : Windows 11 (all versions) or Windows 10 (version 1809+)
+- Architecture     : 64-bit (x64 / AMD64)
+- GPU Acceleration : DirectX 11 / DirectX 12 compatible graphics card
+- RAM              : 4 GB minimum (8 GB recommended for 8K video decoding)
+- Storage          : 150 MB for app installation
+
+--------------------------------------------------------------------------------
+3. INSTALLATION & PACKAGES
+--------------------------------------------------------------------------------
+Two Windows binary distribution formats are available:
+
+A. Full Setup Installer (.exe)
+   Filename: Wallps-Setup-1.0.0.exe
+   - Full NSIS graphical installer
+   - Creates Desktop Shortcut and Start Menu entry
+   - Includes automatic uninstaller in Windows Settings > Apps
+
+B. Standalone Portable Executable (.exe)
+   Filename: Wallps-Portable-1.0.0.exe
+   - Zero-installation needed
+   - Runs directly from USB drives or local folders
+   - Leaves no registry leftovers
+
+--------------------------------------------------------------------------------
+4. HOW THE WINDOWS ENGINE WORKS (WIN32 WORKERW)
+--------------------------------------------------------------------------------
+Wallps embeds video wallpapers seamlessly underneath your desktop icons:
+
+1. Sends the undocumented Windows message (0x052C) to the "Progman" window handle.
+2. Windows Shell spawns a "WorkerW" window directly behind desktop icons
+   (SHELLDLL_DefView).
+3. Wallps reparents its borderless video viewport to this WorkerW window using
+   the SetParent Win32 API.
+4. Result: Videos render fluidly at 60 FPS behind icons without blocking mouse
+   clicks, desktop selection rectangles, or the Windows Taskbar.
+
+--------------------------------------------------------------------------------
+5. SUPPORTED VIDEO FORMATS
+--------------------------------------------------------------------------------
+Wallps supports high-bitrate video decoding via hardware acceleration:
+- MP4 (H.264 / AVC, H.265 / HEVC, AV1)
+- WEBM (VP9, AV1)
+- MOV (ProRes, H.264)
+- MKV (Matroska Container)
+
+Import custom videos anytime using the "My Wallpapers > Add Video" button.
+
+--------------------------------------------------------------------------------
+6. DEVELOPER GUIDE & COMPILATION
+--------------------------------------------------------------------------------
+Prerequisites:
+- Node.js v18+ or v20+
+- npm v9+
+
+Commands:
+
+# 1. Navigate to the Windows directory
+cd windows
+
+# 2. Install dependencies
+npm install
+
+# 3. Launch in development mode
+npm start
+
+# 4. Package Windows Installer & Portable .exe
+npm run build:win
+
+# 5. Build only the standalone Portable .exe
+npm run build:portable
+
+# 6. Build only the NSIS Installer .exe
+npm run build:nsis
+
+Output Directory:
+Build artifacts are automatically placed into:
+../build/windows/
+  ├── Wallps-Setup-1.0.0.exe
+  └── Wallps-Portable-1.0.0-x64.exe
+
+--------------------------------------------------------------------------------
+7. AUTOMATED GITHUB ACTIONS CI/CD
+--------------------------------------------------------------------------------
+The Windows build pipeline is fully automated in:
+.github/workflows/windows-release.yml
+
+When a new git release tag (e.g. v1.0.0) is pushed:
+1. GitHub spins up a windows-latest runner.
+2. Checks out the repository and installs Node.js dependencies.
+3. Compiles both Wallps-Setup.exe and Wallps-Portable.exe.
+4. Attaches the .exe binaries directly to the GitHub Release page.
+
+--------------------------------------------------------------------------------
+8. TROUBLESHOOTING & FAQ
+--------------------------------------------------------------------------------
+Q: Why doesn't the wallpaper appear behind desktop icons?
+A: Ensure Windows "Show desktop icons" is enabled (Right click Desktop > View >
+   Show desktop icons). If another live wallpaper tool is running, close it
+   before launching Wallps.
+
+Q: How do I pause playback when playing games?
+A: Wallps features battery & occlusion awareness. You can also click "Pause"
+   in the bottom Active Dock or right-click the Wallps tray icon to pause.
+
+Q: Where are imported wallpapers stored on Windows?
+A: Custom imported wallpapers are indexed locally in:
+   %APPDATA%\Wallps\Library\
+
+================================================================================
+                     © 2026 Wallps Contributors • Apache-2.0
+================================================================================
