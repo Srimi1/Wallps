@@ -1,15 +1,25 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Build polished macOS DMG for Wallps
+# Build polished, standards-compliant macOS DMG for Wallps
 APP_NAME="Wallps"
 DERIVED_DATA="${HOME}/Library/Developer/Xcode/DerivedData/Wallps-build"
 APP_BUNDLE="${DERIVED_DATA}/Build/Products/Release/${APP_NAME}.app"
 OUTPUT_DIR="$(pwd)/build"
 DMG_PATH="${OUTPUT_DIR}/${APP_NAME}.dmg"
-STAGING_DIR="${OUTPUT_DIR}/dmg_staging"
 
-echo "==> Preparing DMG packaging for ${APP_NAME}..."
+# Use local non-synced directory for staging to prevent cloud sync xattrs
+TMP_DIR="$(mktemp -d -t wallps_dmg_XXXXXX)"
+STAGING_DIR="${TMP_DIR}/staging"
+TMP_DMG="${TMP_DIR}/${APP_NAME}.dmg"
+ENTITLEMENTS="$(pwd)/Wallps/Wallps.entitlements"
+
+cleanup() {
+    rm -rf "${TMP_DIR}"
+}
+trap cleanup EXIT
+
+echo "==> Preparing release packaging for ${APP_NAME}..."
 
 if [ ! -d "${APP_BUNDLE}" ]; then
     echo "==> Building Release target..."
@@ -17,11 +27,20 @@ if [ ! -d "${APP_BUNDLE}" ]; then
 fi
 
 mkdir -p "${OUTPUT_DIR}"
-rm -rf "${STAGING_DIR}" "${DMG_PATH}"
+rm -rf "${STAGING_DIR}" "${TMP_DMG}" "${DMG_PATH}"
 mkdir -p "${STAGING_DIR}"
 
-echo "==> Copying ${APP_NAME}.app to staging..."
+echo "==> Copying ${APP_NAME}.app to clean staging..."
 cp -R "${APP_BUNDLE}" "${STAGING_DIR}/"
+
+echo "==> Sanitizing extended attributes..."
+xattr -cr "${STAGING_DIR}"
+
+echo "==> Re-signing staged app with Hardened Runtime..."
+codesign --force --deep --sign - --options runtime --entitlements "${ENTITLEMENTS}" "${STAGING_DIR}/${APP_NAME}.app"
+
+echo "==> Verifying signature and integrity..."
+codesign --verify --deep --strict --verbose=2 "${STAGING_DIR}/${APP_NAME}.app"
 
 echo "==> Creating /Applications symlink..."
 ln -s /Applications "${STAGING_DIR}/Applications"
@@ -31,6 +50,9 @@ if [ -f "Wallps/Resources/AppIcon.icns" ]; then
     command -v SetFile >/dev/null && SetFile -a C "${STAGING_DIR}" || true
 fi
 
+# Ensure no stray attributes in staging before creating DMG
+xattr -cr "${STAGING_DIR}" 2>/dev/null || true
+
 echo "==> Creating DMG image with hdiutil..."
 hdiutil create \
     -volname "${APP_NAME}" \
@@ -38,11 +60,12 @@ hdiutil create \
     -ov \
     -format UDZO \
     -imagekey zlib-level=9 \
-    "${DMG_PATH}"
+    "${TMP_DMG}"
 
-rm -rf "${STAGING_DIR}"
+echo "==> Moving DMG to build directory..."
+cp "${TMP_DMG}" "${DMG_PATH}"
 
-echo "==> Verifying DMG..."
+echo "==> Verifying DMG integrity..."
 hdiutil imageinfo "${DMG_PATH}" >/dev/null
 
 echo "==> Successfully built DMG installer:"

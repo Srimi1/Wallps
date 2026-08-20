@@ -11,11 +11,18 @@
 [![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-M1%20%7C%20M2%20%7C%20M3%20%7C%20M4-007AFF?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/Srimi1/Wallps/releases)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](LICENSE)
 [![Zero Telemetry](https://img.shields.io/badge/Privacy-Zero%20Telemetry-00C7BE?style=for-the-badge)](SECURITY.md)
-[![Pre-Release](https://img.shields.io/badge/Pre--Release-v0.1.0-FF9500?style=for-the-badge&logo=github)](https://github.com/Srimi1/Wallps/releases)
+[![Upcoming Release](https://img.shields.io/badge/Release-v0.1.0%20(Ready)-34C759?style=for-the-badge&logo=github)](CHANGELOG.md)
 
-[**Download Latest DMG**](https://github.com/Srimi1/Wallps/releases) • [**Explore Features**](#-key-features) • [**Security & Privacy**](#-security--privacy) • [**Architecture**](#-how-it-works) • [**Build from Source**](#-download--installation)
+[**Download Latest DMG**](https://github.com/Srimi1/Wallps/releases) • [**Release Notes**](CHANGELOG.md) • [**Verification Report**](docs/RELEASE_VERIFICATION_REPORT.md) • [**Security & Privacy**](SECURITY.md) • [**Build from Source**](#-download--installation)
 
 </div>
+
+---
+
+> [!NOTE]
+> **Upcoming Official Release (v0.1.0)**: This build is verified against all macOS standards, featuring universal binary support (Apple Silicon & Intel), Hardened Runtime codesigning, zero telemetry, and 1-click instant wallpaper switching. See the full [Verification Report](docs/RELEASE_VERIFICATION_REPORT.md).
+
+---
 
 ---
 
