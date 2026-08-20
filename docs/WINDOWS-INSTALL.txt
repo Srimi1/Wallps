@@ -1,0 +1,403 @@
+================================================================================
+  WALLPS FOR WINDOWS - INSTALL AND USER GUIDE
+================================================================================
+
+  Live 4K video wallpapers that play behind your desktop icons, and get out of
+  the way the moment you stop looking at them.
+
+  Version .......... 1.0.0
+  Works on ......... Windows 11, and Windows 10 version 1809 or newer
+  Architecture ..... 64-bit (x64)
+  Licence .......... Apache-2.0
+  Project .......... https://github.com/Srimi1/Wallps
+
+  Contents
+    1.  What Wallps does
+    2.  Requirements
+    3.  Install option A - the installer
+    4.  Install option B - the portable build
+    5.  Install option C - build it yourself
+    6.  First run
+    7.  Adding your own videos
+    8.  How Wallps saves battery
+    9.  Settings explained
+    10. Where your files are kept
+    11. Troubleshooting
+    12. Uninstalling
+    13. Known limitations
+    14. Reporting a problem
+
+
+================================================================================
+  1. WHAT WALLPS DOES
+================================================================================
+
+  Wallps plays a looping video as your desktop wallpaper. The video sits
+  behind your desktop icons, exactly where the normal wallpaper would be - your
+  icons stay clickable, right-click still works, and the taskbar is untouched.
+
+  The part that matters for a laptop: Wallps stops decoding video whenever
+  nobody can see it. Cover the desktop with a maximised window and it pauses.
+  Unplug the charger and it pauses. Lock the screen and it pauses. It picks up
+  again the moment the desktop is visible.
+
+  Wallps runs from the system tray. Closing its window does not quit it, and
+  does not stop your wallpaper.
+
+
+================================================================================
+  2. REQUIREMENTS
+================================================================================
+
+  - Windows 11, or Windows 10 version 1809 (October 2018 Update) or newer
+  - A 64-bit (x64) processor
+  - About 250 MB of free disk space for the app, plus room for your videos
+  - A GPU that can decode video in hardware, for the lowest power use. Wallps
+    still works without one, and will warn you on any video it has to decode
+    in software.
+
+  Windows on ARM (Surface Pro X, Snapdragon X laptops) is not built for
+  natively yet. The x64 build runs there through Windows' built-in emulation,
+  just with higher power use.
+
+
+================================================================================
+  3. INSTALL OPTION A - THE INSTALLER
+================================================================================
+
+  This is the normal way to install Wallps.
+
+  Step 1.  Open https://github.com/Srimi1/Wallps/releases
+
+  Step 2.  Under the latest release, download:
+
+             Wallps-Setup-1.0.0-x64.exe
+
+  Step 3.  Run it. Windows will show a blue warning box:
+
+             "Windows protected your PC"
+             "Microsoft Defender SmartScreen prevented an unrecognised app
+              from starting."
+
+           Click "More info", then "Run anyway".
+
+           WHY THIS HAPPENS: Wallps is not code-signed. A Windows code-signing
+           certificate costs a few hundred dollars a year, and this is a free
+           open-source project. SmartScreen shows this warning for every
+           unsigned application, regardless of what the application does. If
+           you would rather not click through a warning, use option C below and
+           build it from source yourself - then you know exactly what you ran.
+
+  Step 4.  Follow the installer. You can choose the install folder. Wallps
+           installs for your user account only, so it will not ask for
+           administrator rights.
+
+  Step 5.  Wallps starts and puts an icon in your system tray, near the clock.
+           If you do not see it, click the "^" arrow to show hidden icons.
+
+
+================================================================================
+  4. INSTALL OPTION B - THE PORTABLE BUILD
+================================================================================
+
+  If you would rather not install anything - for example on a work machine, or
+  from a USB stick - download this instead:
+
+             Wallps-Portable-1.0.0-x64.exe
+
+  Run it directly. Nothing is written to Program Files, and nothing is added to
+  Add/Remove Programs.
+
+  One thing to know: your wallpaper library and settings are still stored in
+  your user profile at %APPDATA%\Wallps, not next to the .exe. The portable
+  build avoids installing; it is not fully self-contained. See section 10.
+
+
+================================================================================
+  5. INSTALL OPTION C - BUILD IT YOURSELF
+================================================================================
+
+  Building from source avoids the SmartScreen warning entirely, because you
+  produce the executable on your own machine.
+
+  You need Node.js 20 or newer, from https://nodejs.org, and Git.
+
+      git clone https://github.com/Srimi1/Wallps.git
+      cd Wallps\windows
+      npm ci
+
+  To run Wallps straight away, without producing an .exe at all:
+
+      npm start
+
+  To produce the installer and the portable build:
+
+      npm run build:win
+
+  Both files are written to the "build\windows" folder at the top level of the
+  repository - one level above the "windows" folder you are standing in:
+
+      build\windows\Wallps-Setup-1.0.0-x64.exe
+      build\windows\Wallps-Portable-1.0.0-x64.exe
+
+  This must be run on Windows. Building a Windows installer from macOS or Linux
+  needs Wine and is not supported here.
+
+  To run the test suite:
+
+      npm test
+
+
+================================================================================
+  6. FIRST RUN
+================================================================================
+
+  Wallps opens its window and adds a tray icon.
+
+  The window has three tabs:
+
+    Explore Gallery   Browse a catalog of downloadable wallpapers. This is
+                      EMPTY by default - Wallps does not ship with a bundled
+                      catalog. See section 9 if you want to point it at one.
+
+    My Wallpapers     Your own videos. This is the main way to use Wallps.
+
+    Settings          Playback, battery behaviour, and startup.
+
+  Closing the window with the X hides Wallps to the tray and keeps your
+  wallpaper running. To actually quit, right-click the tray icon and choose
+  "Quit Wallps".
+
+  Right-clicking the tray icon also gives you a pause toggle, your five most
+  recent wallpapers, and a "Clear Wallpaper" option.
+
+
+================================================================================
+  7. ADDING YOUR OWN VIDEOS
+================================================================================
+
+  Two ways:
+
+    - Go to "My Wallpapers" and click "Add Video..."
+    - Or drag a video file anywhere onto the Wallps window
+
+  Supported formats:
+
+      .mp4    .m4v    .webm    .mov
+
+  MKV files are NOT supported and will be refused with a clear message rather
+  than silently showing a black screen.
+
+  Supported video codecs: H.264, HEVC, VP8, VP9, and AV1. ProRes files play on
+  macOS but not on Windows - convert them to H.264 or HEVC first.
+
+  When you add a video, Wallps copies it into its own library folder. That
+  means your wallpaper keeps working even if you later move, rename or delete
+  the original file. It also means the video takes up disk space twice, so you
+  may want to delete your copy afterwards.
+
+  Videos must be at least half a second long. Anything shorter just stutters
+  when looped.
+
+  WHAT MAKES A GOOD WALLPAPER VIDEO
+    - 10 to 30 seconds long
+    - No audio track (it is muted by default anyway, and an audio track still
+      costs power to decode)
+    - Matching first and last frames, so the loop does not jump
+    - H.264 for the widest compatibility, HEVC for smaller 4K files
+
+
+================================================================================
+  8. HOW WALLPS SAVES BATTERY
+================================================================================
+
+  Wallps stops decoding video in all of these situations:
+
+    ALWAYS, not configurable:
+      - The screen is locked
+      - The screensaver is running
+      - The display is asleep
+      - You paused it yourself
+
+    ON BY DEFAULT, can be turned off in Settings:
+      - A window is covering the desktop (90% or more of a monitor)
+      - The laptop is running on battery
+      - Windows Battery Saver is on
+
+  On a multi-monitor setup this is worked out per monitor. Maximising a window
+  on one screen pauses only that screen; the wallpaper on your other monitor
+  keeps playing.
+
+  A fullscreen game or a presentation pauses every monitor.
+
+  Wallps never keeps your display awake or blocks sleep.
+
+
+================================================================================
+  9. SETTINGS EXPLAINED
+================================================================================
+
+  VIDEO
+    Scaling         Fill    - crop to fill the screen (default)
+                    Fit     - show the whole video, black bars if needed
+                    Stretch - distort to fit exactly
+    Mute audio      On by default. Audio only ever plays on your primary
+                    monitor, never duplicated across screens.
+    Volume          Only shown when audio is unmuted.
+
+  BATTERY AND PERFORMANCE
+    The three pause toggles described in section 8.
+
+  GALLERY
+    Catalog URL     Wallps ships with NO bundled catalog, so the gallery is
+                    empty until you fill this in. Point it at a catalog.json
+                    file you host yourself - the format is documented in
+                    docs/CATALOG.md in the repository. Leave it blank to use
+                    Wallps purely with your own videos.
+    Reload Gallery  Fetches the catalog again.
+    Show Library    Opens your library folder in File Explorer.
+
+  SYSTEM
+    Launch at login Strongly recommended. Wallps has to be running to draw your
+                    wallpaper, so without this your wallpaper is gone after
+                    every restart.
+    Copy Diagnostics
+                    Copies a full technical report to your clipboard. Paste it
+                    into a bug report - see section 14.
+
+
+================================================================================
+  10. WHERE YOUR FILES ARE KEPT
+================================================================================
+
+  Everything Wallps stores lives in one folder:
+
+      %APPDATA%\Wallps\
+
+  Paste that into the File Explorer address bar to open it. Inside:
+
+      library.json      An index of your wallpapers
+      settings.json     Your preferences
+      Videos\           Your imported videos
+      Thumbnails\       Generated preview images
+
+  The whole folder can be copied to another PC, or backed up, as one unit.
+
+  Uninstalling Wallps does NOT delete this folder - see section 12.
+
+
+================================================================================
+  11. TROUBLESHOOTING
+================================================================================
+
+  THE WALLPAPER DOES NOT APPEAR AT ALL
+
+    Wallps places the video behind your desktop icons using an undocumented
+    Windows shell mechanism, and Microsoft has changed how it behaves between
+    Windows builds. If it does not work on your machine, this is the most
+    likely reason, and a diagnostic report will say exactly which step failed.
+
+    Go to Settings and click "Copy Diagnostics", then open an issue and paste
+    the result. That report names the window handles involved and which of the
+    four fallback strategies was used, which is what makes it fixable.
+
+    For a live log, run Wallps from a terminal with debugging on:
+
+        set WALLPS_DEBUG=1
+        "%LOCALAPPDATA%\Programs\Wallps\Wallps.exe"
+
+  THE VIDEO PLAYS BUT FLOATS ON TOP OF EVERYTHING
+
+    Wallps failed to attach to the desktop layer and fell back to a normal
+    window. Quit from the tray and report it with a diagnostics paste.
+
+  MY DESKTOP ICONS DISAPPEARED
+
+    Quit Wallps from the tray icon. Your icons will come back. Please report
+    this - it means a fallback path was used that should not have been.
+
+  A VIDEO IMPORTED BUT SHOWS A BLACK SCREEN
+
+    The container is supported but the codec inside is not - most often ProRes
+    in a .mov file. Convert it to H.264 or HEVC.
+
+  THE WALLPAPER IS GONE AFTER RESTARTING MY PC
+
+    Turn on "Launch Wallps at login" in Settings. Wallps has to be running to
+    draw the wallpaper.
+
+  THE WALLPAPER VANISHED AND MY TASKBAR FLICKERED
+
+    Windows Explorer restarted, which destroys the layer Wallps draws into.
+    Wallps detects this and re-attaches automatically after a couple of
+    seconds. If it does not come back, report it.
+
+  THE VIDEO STUTTERS, OR MY FAN IS LOUD
+
+    Check the video's card in "My Wallpapers" for an orange "software decode"
+    warning. That means your GPU cannot decode that codec and the CPU is doing
+    it instead. Convert the video to H.264, which almost every GPU handles.
+
+    A 4K 60fps video is also simply more work than 1080p 30fps. If your machine
+    struggles, use a smaller video.
+
+  SMARTSCREEN WILL NOT LET ME RUN THE INSTALLER
+
+    Click "More info", then "Run anyway". See section 3. If your workplace
+    blocks unsigned applications entirely, build from source - section 5.
+
+
+================================================================================
+  12. UNINSTALLING
+================================================================================
+
+  Windows Settings > Apps > Installed apps > Wallps > Uninstall
+
+  Or use the Uninstall shortcut in the Start menu folder.
+
+  Your wallpaper library is deliberately left behind at %APPDATA%\Wallps, so
+  that reinstalling does not lose your videos. To remove it too, delete that
+  folder by hand after uninstalling.
+
+  For the portable build, just delete the .exe, then delete %APPDATA%\Wallps.
+
+
+================================================================================
+  13. KNOWN LIMITATIONS
+================================================================================
+
+  - Not code-signed, so SmartScreen warns on first run (section 3).
+  - 64-bit x64 only. Windows on ARM works through emulation, at higher power
+    use. There is no 32-bit build.
+  - MKV is not supported, and neither is ProRes.
+  - The gallery is empty until you configure a catalog URL yourself.
+  - Wallps must be running for the wallpaper to show. It is not a Windows
+    wallpaper plugin, and it cannot draw on the lock screen.
+  - Audio plays on the primary monitor only, never on several at once.
+
+
+================================================================================
+  14. REPORTING A PROBLEM
+================================================================================
+
+  Open an issue at:
+
+      https://github.com/Srimi1/Wallps/issues
+
+  Please include:
+
+    - Your Windows version. Press Win+R, type "winver", press Enter, and copy
+      what it says.
+    - How many monitors you have, their resolutions, and their scaling
+      percentages.
+    - What you expected, and what happened instead.
+    - The output of Settings > "Copy Diagnostics". This is the single most
+      useful thing you can attach - it contains the window handles, which
+      desktop-attachment strategy was used, the state of every monitor, and the
+      recent log. It contains no personal information beyond your wallpaper
+      file names.
+
+  Wallps is free and open source under the Apache-2.0 licence. The full source
+  is in the repository, including the Windows code under "windows/".
+
+================================================================================
