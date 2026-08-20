@@ -2,46 +2,117 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 enum LibraryTab: String, CaseIterable, Identifiable {
+    case gallery = "Explore Gallery"
     case myWallpapers = "My Wallpapers"
-    case gallery = "Gallery"
 
     var id: String { rawValue }
     var systemImage: String {
         switch self {
-        case .myWallpapers: return "square.grid.2x2"
         case .gallery: return "sparkles"
+        case .myWallpapers: return "square.grid.2x2.fill"
         }
     }
 }
 
 struct LibraryWindow: View {
     @Environment(AppState.self) private var state
-    @State private var tab: LibraryTab = .myWallpapers
+    @State private var tab: LibraryTab = .gallery
+    @Namespace private var navNamespace
 
     var body: some View {
-        NavigationSplitView {
-            List(selection: $tab) {
-                Section("Library") {
-                    ForEach(LibraryTab.allCases) { tab in
-                        Label(tab.rawValue, systemImage: tab.systemImage).tag(tab)
+        VStack(spacing: 0) {
+            // MARK: - Futuristic Top Bar (Wallper.app Floating Style)
+            HStack(spacing: 16) {
+                // App Brand & Futuristic Badge
+                HStack(spacing: 8) {
+                    Image(systemName: "photo.on.rectangle.angled")
+                        .font(.system(size: 16, weight: .bold))
+                        .foregroundStyle(Theme.cyberCyan)
+                    
+                    Text("WALLPS")
+                        .font(.system(size: 14, weight: .bold, design: .monospaced))
+                        .foregroundStyle(Theme.ink)
+
+                    TechBadge(text: "PRO", color: Theme.cyberCyan)
+                }
+
+                Spacer()
+
+                // Floating Navigation Tabs Pill
+                HStack(spacing: 4) {
+                    ForEach(LibraryTab.allCases) { item in
+                        let isSelected = tab == item
+                        Button {
+                            withAnimation(Theme.Motion.springStandard) {
+                                tab = item
+                            }
+                        } label: {
+                            HStack(spacing: 6) {
+                                Image(systemName: item.systemImage)
+                                    .font(.system(size: 11, weight: .semibold))
+                                Text(item.rawValue)
+                                    .font(.system(size: 12, weight: isSelected ? .semibold : .medium))
+                            }
+                            .foregroundStyle(isSelected ? Theme.inkInverted : Theme.inkSecondary)
+                            .padding(.horizontal, 14)
+                            .padding(.vertical, 7)
+                            .background {
+                                if isSelected {
+                                    Capsule()
+                                        .fill(Color.white)
+                                        .matchedGeometryEffect(id: "mainNavCapsule", in: navNamespace)
+                                        .beamBorder(cornerRadius: Theme.Radius.pill, lineWidth: 1.0, isActive: true, glowIntensity: 0.7)
+                                }
+                            }
+                        }
+                        .buttonStyle(.plain)
                     }
                 }
+                .padding(4)
+                .background(Theme.surface)
+                .clipShape(Capsule())
+                .overlay(Capsule().strokeBorder(Theme.hairline, lineWidth: Theme.hairlineWidth))
+
+                Spacer()
+
+                // Display Target Selector & Engine HUD
+                HStack(spacing: 10) {
+                    DisplayTargetPicker()
+
+                    // Engine Status Dot
+                    HStack(spacing: 5) {
+                        Circle()
+                            .fill(state.engine.hasActiveWallpaper ? Theme.neonEmerald : Theme.inkTertiary)
+                            .frame(width: 6, height: 6)
+                        Text(state.engine.hasActiveWallpaper ? "ACTIVE" : "IDLE")
+                            .font(.system(size: 10, weight: .bold, design: .monospaced))
+                            .foregroundStyle(state.engine.hasActiveWallpaper ? Theme.neonEmerald : Theme.inkTertiary)
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 5)
+                    .background(Theme.surface)
+                    .clipShape(Capsule())
+                    .overlay(Capsule().strokeBorder(Theme.hairline, lineWidth: Theme.hairlineWidth))
+                }
             }
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200, max: 240)
-        } detail: {
+            .padding(.horizontal, 24)
+            .padding(.vertical, 12)
+            .background(Theme.backgroundSecondary.opacity(0.95))
+            .overlay(alignment: .bottom) {
+                Divider().background(Theme.hairline)
+            }
+
+            // MARK: - Main Tab Content
             Group {
                 switch tab {
-                case .myWallpapers: MyWallpapersView()
                 case .gallery: GalleryView()
+                case .myWallpapers: MyWallpapersView()
                 }
             }
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    DisplayTargetPicker()
-                }
-            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .frame(minWidth: 760, minHeight: 480)
+        .background(Theme.background)
+        .frame(minWidth: 920, minHeight: 600)
         .alert(
             "Something went wrong",
             isPresented: Binding(
@@ -56,7 +127,7 @@ struct LibraryWindow: View {
     }
 }
 
-/// Chooses whether library actions apply to every display or just one.
+/// Futuristic Display Target Selector
 struct DisplayTargetPicker: View {
     @Environment(AppState.self) private var state
 
@@ -65,14 +136,58 @@ struct DisplayTargetPicker: View {
         let displays = state.engine.connectedDisplays
 
         if displays.count > 1 {
-            Picker("Apply to", selection: $bindableState.assignmentTarget) {
-                Text("All Displays").tag(AssignmentTarget.allDisplays)
-                ForEach(displays) { display in
-                    Text(display.name).tag(AssignmentTarget.display(key: display.key))
+            Menu {
+                Button {
+                    bindableState.assignmentTarget = .allDisplays
+                } label: {
+                    HStack {
+                        Text("All Displays (\(displays.count))")
+                        if bindableState.assignmentTarget == .allDisplays {
+                            Image(systemName: "checkmark")
+                        }
+                    }
                 }
+
+                Divider()
+
+                ForEach(displays) { display in
+                    Button {
+                        bindableState.assignmentTarget = .display(key: display.key)
+                    } label: {
+                        HStack {
+                            Text(display.name)
+                            if case .display(let key) = bindableState.assignmentTarget, key == display.key {
+                                Image(systemName: "checkmark")
+                            }
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 6) {
+                    Image(systemName: "display.2")
+                        .font(.system(size: 11, weight: .semibold))
+                    Text(displayTargetTitle(displays: displays))
+                        .font(.system(size: 11, weight: .medium))
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 8))
+                }
+                .foregroundStyle(Theme.inkSecondary)
+                .padding(.horizontal, 10)
+                .padding(.vertical, 5)
+                .background(Theme.surface)
+                .clipShape(Capsule())
+                .overlay(Capsule().strokeBorder(Theme.hairline, lineWidth: Theme.hairlineWidth))
             }
-            .pickerStyle(.menu)
-            .frame(maxWidth: 260)
+            .menuStyle(.borderlessButton)
+        }
+    }
+
+    private func displayTargetTitle(displays: [WallpaperEngine.Display]) -> String {
+        switch state.assignmentTarget {
+        case .allDisplays:
+            return "All Displays"
+        case .display(let key):
+            return displays.first(where: { $0.key == key })?.name ?? "Display"
         }
     }
 }
@@ -82,39 +197,79 @@ struct MyWallpapersView: View {
     @State private var isImporting = false
     @State private var isDropTargeted = false
 
-    private let columns = [GridItem(.adaptive(minimum: 220, maximum: 320), spacing: 16)]
+    private let columns = [GridItem(.adaptive(minimum: 260, maximum: 360), spacing: 18)]
 
     var body: some View {
-        Group {
+        ZStack {
+            Theme.background.ignoresSafeArea()
+
             if state.library.items.isEmpty {
                 EmptyLibraryView(isImporting: $isImporting)
             } else {
                 ScrollView {
-                    LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(sortedItems) { item in
-                            WallpaperCard(item: item)
+                    VStack(alignment: .leading, spacing: 20) {
+                        // Section Header
+                        HStack {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("My Wallpaper Library")
+                                    .font(Font.heroTitle)
+                                    .foregroundStyle(Theme.ink)
+                                Text("\(state.library.items.count) imported live wallpapers stored locally")
+                                    .font(Font.cardSubtitle)
+                                    .foregroundStyle(Theme.inkSecondary)
+                            }
+
+                            Spacer()
+
+                            Button {
+                                isImporting = true
+                            } label: {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "plus.circle.fill")
+                                    Text("Add Video…")
+                                }
+                            }
+                            .buttonStyle(FuturisticPrimaryButtonStyle())
+                        }
+
+                        // Grid
+                        LazyVGrid(columns: columns, spacing: 18) {
+                            ForEach(sortedItems) { item in
+                                FuturisticWallpaperCard(item: item)
+                            }
                         }
                     }
-                    .padding(20)
+                    .padding(.horizontal, 24)
+                    .padding(.vertical, 20)
                 }
             }
         }
-        .background(isDropTargeted ? Color.accentColor.opacity(0.12) : Color.clear)
+        .overlay {
+            if isDropTargeted {
+                ZStack {
+                    Color.black.opacity(0.7)
+                    VStack(spacing: 12) {
+                        Image(systemName: "arrow.down.doc.fill")
+                            .font(.system(size: 44))
+                            .foregroundStyle(Theme.cyberCyan)
+                        Text("Drop video to add to library")
+                            .font(.system(size: 18, weight: .bold))
+                            .foregroundStyle(.white)
+                    }
+                    .padding(40)
+                    .background(Theme.surfaceElevated)
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .beamBorder(cornerRadius: 20, lineWidth: 2, isActive: true, glowIntensity: 1.0)
+                }
+                .allowsHitTesting(false)
+            }
+        }
         .dropDestination(for: URL.self) { urls, _ in
             let videos = urls.filter(Self.isVideo)
             guard !videos.isEmpty else { return false }
             state.importVideos(from: videos)
             return true
         } isTargeted: { isDropTargeted = $0 }
-        .toolbar {
-            ToolbarItem(placement: .primaryAction) {
-                Button {
-                    isImporting = true
-                } label: {
-                    Label("Add Video", systemImage: "plus")
-                }
-            }
-        }
         .fileImporter(
             isPresented: $isImporting,
             allowedContentTypes: WallpaperLibrary.allowedContentTypes,
@@ -124,7 +279,6 @@ struct MyWallpapersView: View {
                 state.importVideos(from: urls)
             }
         }
-        .navigationTitle("My Wallpapers")
     }
 
     private var sortedItems: [WallpaperItem] {
@@ -141,18 +295,33 @@ struct EmptyLibraryView: View {
     @Binding var isImporting: Bool
 
     var body: some View {
-        ContentUnavailableView {
-            Label("No Wallpapers Yet", systemImage: "film.stack")
-        } description: {
-            Text("Drop a video here, or browse the Gallery for ready-made live wallpapers.")
-        } actions: {
-            Button("Add Video…") { isImporting = true }
-                .buttonStyle(.borderedProminent)
+        VStack(spacing: 16) {
+            Image(systemName: "film.stack")
+                .font(.system(size: 48))
+                .foregroundStyle(Theme.cyberCyan.opacity(0.6))
+
+            Text("No Personal Wallpapers Yet")
+                .font(.system(size: 20, weight: .bold))
+                .foregroundStyle(Theme.ink)
+
+            Text("Drop any 4K/HEVC video here, or explore the Gallery for ready-made live wallpapers.")
+                .font(.system(size: 13))
+                .foregroundStyle(Theme.inkSecondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 400)
+
+            Button("Add Video from Mac…") {
+                isImporting = true
+            }
+            .buttonStyle(FuturisticPrimaryButtonStyle())
+            .padding(.top, 8)
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(40)
     }
 }
 
-struct WallpaperCard: View {
+struct FuturisticWallpaperCard: View {
     @Environment(AppState.self) private var state
     let item: WallpaperItem
     @State private var isHovering = false
@@ -160,52 +329,110 @@ struct WallpaperCard: View {
     private var isActive: Bool { state.engine.activeItemIDs.contains(item.id) }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            ZStack(alignment: .topTrailing) {
-                ThumbnailImage(url: state.library.thumbnailURL(for: item))
-                    .aspectRatio(16 / 9, contentMode: .fill)
-                    .frame(maxWidth: .infinity)
-                    .clipShape(RoundedRectangle(cornerRadius: 10))
-                    .overlay {
-                        RoundedRectangle(cornerRadius: 10)
-                            .strokeBorder(isActive ? Color.accentColor : Color.clear, lineWidth: 3)
+        VStack(alignment: .leading, spacing: 10) {
+            ZStack(alignment: .bottom) {
+                ZStack(alignment: .topTrailing) {
+                    ThumbnailImage(url: state.library.thumbnailURL(for: item))
+                        .aspectRatio(16 / 9, contentMode: .fill)
+                        .frame(maxWidth: .infinity)
+                        .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.card))
+
+                    // Active Wallpaper Pill
+                    if isActive {
+                        HStack(spacing: 4) {
+                            Circle().fill(Theme.neonEmerald).frame(width: 6, height: 6)
+                            Text("ACTIVE DESKTOP")
+                                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                                .foregroundStyle(Theme.neonEmerald)
+                        }
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 4)
+                        .background(Color.black.opacity(0.75))
+                        .clipShape(Capsule())
+                        .overlay(Capsule().strokeBorder(Theme.neonEmerald.opacity(0.6), lineWidth: 1))
+                        .padding(8)
                     }
 
-                if isActive {
-                    Image(systemName: "checkmark.circle.fill")
-                        .foregroundStyle(.white, Color.accentColor)
-                        .font(.title3)
-                        .padding(8)
+                    // Resolution Tag
+                    HStack(spacing: 4) {
+                        TechBadge(text: item.resolutionLabel, color: Theme.cyberCyan)
+                    }
+                    .padding(8)
+                    .frame(maxWidth: .infinity, alignment: .topLeading)
                 }
 
+                // Hover Actions
                 if isHovering {
-                    Button("Set Wallpaper") { state.apply(item) }
-                        .buttonStyle(.borderedProminent)
-                        .controlSize(.small)
-                        .padding(8)
-                        .offset(y: 30)
+                    HStack(spacing: 8) {
+                        Button {
+                            state.apply(item)
+                        } label: {
+                            HStack(spacing: 5) {
+                                Image(systemName: "sparkles")
+                                Text(isActive ? "Re-apply" : "Set Wallpaper")
+                            }
+                        }
+                        .buttonStyle(FuturisticPrimaryButtonStyle())
+
+                        if isActive {
+                            Button {
+                                state.clearWallpaper()
+                            } label: {
+                                Image(systemName: "xmark.circle")
+                            }
+                            .buttonStyle(FuturisticGhostButtonStyle())
+                            .help("Remove from Desktop")
+                        }
+                    }
+                    .padding(10)
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
                 }
             }
+            .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.card))
+            .beamBorder(cornerRadius: Theme.Radius.card, lineWidth: 1.2, isActive: isActive || isHovering, glowIntensity: isActive ? 0.9 : 0.6)
+            .shadow(color: isActive ? Theme.neonEmerald.opacity(0.2) : (isHovering ? Theme.cyberCyan.opacity(0.15) : Color.black.opacity(0.3)), radius: 14)
+            .scaleEffect(isHovering ? 1.025 : 1.0)
 
-            Text(item.title)
-                .font(.callout.weight(.medium))
-                .lineLimit(1)
-            Text("\(item.resolutionLabel) · \(item.durationLabel)")
-                .font(.caption)
-                .foregroundStyle(.secondary)
+            // Details
+            VStack(alignment: .leading, spacing: 4) {
+                Text(item.title)
+                    .font(Font.cardTitle)
+                    .foregroundStyle(Theme.ink)
+                    .lineLimit(1)
+
+                HStack(spacing: 6) {
+                    Text(item.durationLabel)
+                        .font(.system(size: 11, design: .monospaced))
+                        .foregroundStyle(Theme.inkSecondary)
+                    if let size = item.fileSizeLabel {
+                        Text("·").foregroundStyle(Theme.inkQuaternary)
+                        Text(size)
+                            .font(.system(size: 11, design: .monospaced))
+                            .foregroundStyle(Theme.inkTertiary)
+                    }
+                }
+            }
         }
+        .padding(8)
+        .background(
+            RoundedRectangle(cornerRadius: Theme.Radius.cardLg)
+                .fill(isHovering ? Theme.surfaceHover : Theme.surface)
+                .overlay(RoundedRectangle(cornerRadius: Theme.Radius.cardLg).strokeBorder(Theme.hairline, lineWidth: Theme.hairlineWidth))
+        )
         .onHover { isHovering = $0 }
         .onTapGesture(count: 2) { state.apply(item) }
+        .animation(Theme.Motion.springQuick, value: isHovering)
         .contextMenu {
-            Button("Set Wallpaper") { state.apply(item) }
+            Button("Set as Desktop Wallpaper") { state.apply(item) }
             if isActive {
-                Button("Remove From Desktop") { state.clearWallpaper() }
+                Button("Remove from Desktop") { state.clearWallpaper() }
             }
-            Button("Show in Finder") {
+            Button("Reveal in Finder") {
                 NSWorkspace.shared.activateFileViewerSelecting([state.library.videoURL(for: item)])
             }
             Divider()
-            Button("Delete", role: .destructive) { state.delete(item) }
+            Button("Delete from Library", role: .destructive) { state.delete(item) }
         }
     }
 }
+

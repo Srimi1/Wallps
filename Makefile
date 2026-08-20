@@ -5,7 +5,7 @@ CONFIG ?= Release
 # Drive and other synced folders attach to build products.
 DERIVED ?= $(HOME)/Library/Developer/Xcode/DerivedData/Wallps-build
 
-.PHONY: bootstrap generate build run test clean
+.PHONY: bootstrap generate build run test dmg clean
 
 bootstrap:
 	@command -v xcodegen >/dev/null || brew install xcodegen
@@ -23,5 +23,9 @@ test: generate
 run: build
 	open "$(DERIVED)/Build/Products/$(CONFIG)/$(APP).app"
 
+dmg: build
+	./scripts/build_dmg.sh
+
 clean:
-	rm -rf $(DERIVED) $(APP).xcodeproj
+	rm -rf $(DERIVED) $(APP).xcodeproj build
+

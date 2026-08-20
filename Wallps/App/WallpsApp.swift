@@ -11,7 +11,8 @@ struct WallpsApp: App {
             LibraryWindow()
                 .environment(state)
         }
-        .defaultSize(width: 940, height: 620)
+        .windowStyle(.hiddenTitleBar)
+        .defaultSize(width: 980, height: 640)
         .commands {
             CommandGroup(replacing: .newItem) {}
         }
