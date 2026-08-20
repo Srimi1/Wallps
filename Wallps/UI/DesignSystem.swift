@@ -25,6 +25,7 @@ enum Theme {
     static let cyberPurple = Color(red: 0.65, green: 0.35, blue: 1.0)
     static let neonEmerald = Color(red: 0.20, green: 0.95, blue: 0.65)
     static let solarAmber = Color(red: 1.0, green: 0.65, blue: 0.20)
+    static let neonAmber = Color(red: 1.0, green: 0.65, blue: 0.20)
     static let electricBlue = Color(red: 0.25, green: 0.55, blue: 1.0)
 
     // MARK: - Ink

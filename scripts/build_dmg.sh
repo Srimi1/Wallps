@@ -26,6 +26,11 @@ cp -R "${APP_BUNDLE}" "${STAGING_DIR}/"
 echo "==> Creating /Applications symlink..."
 ln -s /Applications "${STAGING_DIR}/Applications"
 
+if [ -f "Wallps/Resources/AppIcon.icns" ]; then
+    cp "Wallps/Resources/AppIcon.icns" "${STAGING_DIR}/.VolumeIcon.icns"
+    command -v SetFile >/dev/null && SetFile -a C "${STAGING_DIR}" || true
+fi
+
 echo "==> Creating DMG image with hdiutil..."
 hdiutil create \
     -volname "${APP_NAME}" \

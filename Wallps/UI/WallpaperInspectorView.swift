@@ -166,9 +166,10 @@ struct WallpaperInspectorView: View {
 
                         // Action Buttons
                         VStack(spacing: 10) {
+                            let isActive = state.isCatalogEntryActive(entry)
                             // Primary Set Wallpaper
                             Button {
-                                state.download(entry)
+                                state.applyCatalogEntry(entry)
                                 withAnimation(Theme.Motion.springStandard) {
                                     showAppliedToast = true
                                 }
@@ -177,20 +178,20 @@ struct WallpaperInspectorView: View {
                                 }
                             } label: {
                                 HStack(spacing: 8) {
-                                    Image(systemName: "sparkles.rectangle.stack.fill")
-                                    Text("Set as Live Wallpaper")
+                                    Image(systemName: isActive ? "checkmark.circle.fill" : "sparkles.rectangle.stack.fill")
+                                    Text(isActive ? "Active on Desktop" : "Set as Live Wallpaper")
                                 }
                                 .frame(maxWidth: .infinity)
                             }
                             .buttonStyle(FuturisticPrimaryButtonStyle())
 
-                            // Download Only
+                            // Download / Save to Library
                             Button {
                                 state.download(entry)
                             } label: {
                                 HStack(spacing: 6) {
                                     Image(systemName: "arrow.down.circle")
-                                    Text("Save to Library")
+                                    Text(state.library.containsCatalogItem(id: entry.id) ? "Saved in Library" : "Save to Library")
                                 }
                                 .frame(maxWidth: .infinity)
                             }

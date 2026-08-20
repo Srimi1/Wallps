@@ -438,6 +438,59 @@ struct CardItemView: View {
     }
 }
 
+struct ActiveDockView: View {
+    var body: some View {
+        HStack(spacing: 16) {
+            HStack(spacing: 12) {
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(LinearGradient(colors: [Color(red: 0.35, green: 0.10, blue: 0.50), Color(red: 0.05, green: 0.30, blue: 0.55)], startPoint: .topLeading, endPoint: .bottomTrailing))
+                    .frame(width: 54, height: 30)
+                    .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(Color(red: 0.20, green: 0.85, blue: 1.0), lineWidth: 1))
+
+                VStack(alignment: .leading, spacing: 2) {
+                    HStack(spacing: 6) {
+                        Circle().fill(Color(red: 0.20, green: 0.95, blue: 0.65)).frame(width: 6, height: 6)
+                        Text("NTE - Zankou Neon Tokyo").font(.system(size: 13, weight: .semibold)).foregroundStyle(.white)
+                    }
+                    Text("Playing on Built-in Display · 60.0 FPS").font(.system(size: 11)).foregroundStyle(Color.white.opacity(0.55))
+                }
+            }
+
+            Spacer()
+
+            HStack(spacing: 8) {
+                HStack(spacing: 5) {
+                    Image(systemName: "pause.fill").font(.system(size: 10))
+                    Text("Pause").font(.system(size: 12, weight: .medium))
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Color.white.opacity(0.06))
+                .clipShape(Capsule())
+                .overlay(Capsule().strokeBorder(Color.white.opacity(0.12), lineWidth: 0.5))
+
+                HStack(spacing: 5) {
+                    Image(systemName: "xmark.circle").font(.system(size: 10))
+                    Text("Clear Desktop").font(.system(size: 12, weight: .medium))
+                }
+                .foregroundStyle(.white)
+                .padding(.horizontal, 12)
+                .padding(.vertical, 6)
+                .background(Color.white.opacity(0.06))
+                .clipShape(Capsule())
+                .overlay(Capsule().strokeBorder(Color.white.opacity(0.12), lineWidth: 0.5))
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+        .background(Color(red: 0.06, green: 0.06, blue: 0.08).opacity(0.95))
+        .overlay(alignment: .top) {
+            Divider().background(Color.white.opacity(0.09))
+        }
+    }
+}
+
 // 1. Gallery Screenshot
 struct GalleryScreenshotView: View {
     var body: some View {
@@ -460,6 +513,8 @@ struct GalleryScreenshotView: View {
             .padding(24)
 
             Spacer()
+
+            ActiveDockView()
         }
         .background(Color(red: 0.03, green: 0.03, blue: 0.04))
     }
@@ -827,6 +882,8 @@ struct MyWallpapersScreenshotView: View {
                 Spacer()
             }
             .padding(24)
+
+            ActiveDockView()
         }
         .background(Color(red: 0.03, green: 0.03, blue: 0.04))
     }
@@ -838,10 +895,10 @@ Task { @MainActor in
     let assetsDir = "docs/assets"
     try? FileManager.default.createDirectory(atPath: assetsDir, withIntermediateDirectories: true)
 
-    saveImage(view: GalleryScreenshotView(), to: "\(assetsDir)/gallery_showcase.png")
-    saveImage(view: InspectorScreenshotView(), to: "\(assetsDir)/desktop_simulator.png")
-    saveImage(view: MatrixScreenshotView(), to: "\(assetsDir)/classification_matrix.png")
-    saveImage(view: MyWallpapersScreenshotView(), to: "\(assetsDir)/my_wallpapers.png")
+    saveImage(view: GalleryScreenshotView(), to: "\(assetsDir)/gallery_showcase.png", width: 1120, height: 840)
+    saveImage(view: InspectorScreenshotView(), to: "\(assetsDir)/desktop_simulator.png", width: 1120, height: 720)
+    saveImage(view: MatrixScreenshotView(), to: "\(assetsDir)/classification_matrix.png", width: 1120, height: 720)
+    saveImage(view: MyWallpapersScreenshotView(), to: "\(assetsDir)/my_wallpapers.png", width: 1120, height: 840)
 
     print("All screenshots generated successfully in \(assetsDir)/")
     exit(0)

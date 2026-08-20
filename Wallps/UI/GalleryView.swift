@@ -179,10 +179,10 @@ struct FuturisticCatalogCard: View {
     let onInspect: () -> Void
 
     @State private var isHovering = false
-    @State private var isApplying = false
 
     private var isDownloading: Bool { state.catalog.isDownloading(entry) }
     private var isDownloaded: Bool { state.library.containsCatalogItem(id: entry.id) }
+    private var isActiveOnDesktop: Bool { state.isCatalogEntryActive(entry) }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -204,6 +204,25 @@ struct FuturisticCatalogCard: View {
                         }
                     }
 
+                    // Top Left Active Desktop Badge
+                    if isActiveOnDesktop {
+                        HStack(spacing: 5) {
+                            Circle()
+                                .fill(Theme.neonEmerald)
+                                .frame(width: 6, height: 6)
+                            Text("ACTIVE DESKTOP")
+                                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                                .foregroundStyle(Theme.neonEmerald)
+                        }
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 4)
+                        .background(Color.black.opacity(0.85))
+                        .clipShape(Capsule())
+                        .overlay(Capsule().strokeBorder(Theme.neonEmerald.opacity(0.8), lineWidth: 0.8))
+                        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topLeading)
+                        .padding(8)
+                    }
+
                     // Tech Badges Overlay (Top Right)
                     HStack(spacing: 4) {
                         TechBadge(text: entry.displayResolution, color: Theme.cyberCyan)
@@ -211,12 +230,12 @@ struct FuturisticCatalogCard: View {
                     }
                     .padding(8)
 
-                    // Download Progress Overlay
+                    // Download / Applying Progress Overlay
                     if isDownloading {
-                        Color.black.opacity(0.6)
+                        Color.black.opacity(0.65)
                         VStack(spacing: 8) {
                             ProgressView().tint(.white)
-                            Text("Downloading 4K…")
+                            Text("Applying 4K Wallpaper…")
                                 .font(.system(size: 11, weight: .medium))
                                 .foregroundStyle(.white)
                         }
@@ -230,12 +249,12 @@ struct FuturisticCatalogCard: View {
                     HStack(spacing: 8) {
                         // Quick Apply Button
                         Button {
-                            state.download(entry)
+                            state.applyCatalogEntry(entry)
                         } label: {
                             HStack(spacing: 5) {
-                                Image(systemName: isDownloaded ? "checkmark.circle.fill" : "sparkles")
+                                Image(systemName: isActiveOnDesktop ? "checkmark.circle.fill" : "sparkles")
                                     .font(.system(size: 11, weight: .bold))
-                                Text(isDownloaded ? "In Library" : "Set Wallpaper")
+                                Text(isActiveOnDesktop ? "Active on Desktop" : "Set as Wallpaper")
                                     .font(.system(size: 11, weight: .semibold))
                             }
                         }
@@ -257,9 +276,15 @@ struct FuturisticCatalogCard: View {
                 }
             }
             .clipShape(RoundedRectangle(cornerRadius: Theme.Radius.card, style: .continuous))
-            .beamBorder(cornerRadius: Theme.Radius.card, lineWidth: 1.2, isActive: isHovering, glowIntensity: 0.8)
-            .shadow(color: isHovering ? Theme.cyberCyan.opacity(0.18) : Color.black.opacity(0.3), radius: isHovering ? 18 : 6, x: 0, y: isHovering ? 6 : 2)
+            .beamBorder(cornerRadius: Theme.Radius.card, lineWidth: isActiveOnDesktop ? 1.5 : 1.2, isActive: isHovering || isActiveOnDesktop, glowIntensity: isActiveOnDesktop ? 0.9 : 0.8)
+            .shadow(color: isActiveOnDesktop ? Theme.neonEmerald.opacity(0.3) : (isHovering ? Theme.cyberCyan.opacity(0.18) : Color.black.opacity(0.3)), radius: isHovering ? 18 : 6, x: 0, y: isHovering ? 6 : 2)
             .scaleEffect(isHovering ? 1.025 : 1.0)
+            .onTapGesture(count: 2) {
+                state.applyCatalogEntry(entry)
+            }
+            .onTapGesture {
+                onInspect()
+            }
 
             // Card Metadata Footer
             VStack(alignment: .leading, spacing: 4) {

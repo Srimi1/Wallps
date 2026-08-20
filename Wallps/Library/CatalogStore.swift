@@ -106,8 +106,12 @@ final class CatalogStore {
     }
 
     /// Downloads a catalog entry and imports it into the library.
-    func download(_ entry: CatalogEntry, into library: WallpaperLibrary) async {
-        guard progress[entry.id] == nil else { return }
+    @discardableResult
+    func download(_ entry: CatalogEntry, into library: WallpaperLibrary) async -> WallpaperItem? {
+        if let existing = library.items.first(where: { $0.catalogID == entry.id }) {
+            return existing
+        }
+        guard progress[entry.id] == nil else { return nil }
         progress[entry.id] = 0.1
         defer { progress[entry.id] = nil }
 
@@ -122,7 +126,7 @@ final class CatalogStore {
                 .appendingPathComponent("\(UUID().uuidString).\(ext)")
             try FileManager.default.moveItem(at: tempURL, to: renamed)
 
-            _ = try await library.importVideo(
+            let item = try await library.importVideo(
                 from: renamed,
                 title: entry.title,
                 source: .remote,
@@ -132,8 +136,10 @@ final class CatalogStore {
                 license: entry.license
             )
             progress[entry.id] = 1.0
+            return item
         } catch {
             lastError = error.localizedDescription
+            return nil
         }
     }
 

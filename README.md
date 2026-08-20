@@ -1,8 +1,8 @@
-# Wallps
-
 <div align="center">
 
-![Wallps Banner](docs/assets/gallery_showcase.png)
+<img src="docs/assets/app_icon.png" width="128" height="128" alt="Wallps App Icon" style="border-radius: 28px; margin-bottom: 8px;" />
+
+# Wallps
 
 **Ultra-Minimal 4K Live Video Wallpapers for macOS.**  
 *Native, hardware-accelerated, battery-aware, and 100% telemetry-free.*
@@ -13,7 +13,7 @@
 [![Zero Telemetry](https://img.shields.io/badge/Privacy-Zero%20Telemetry-00C7BE?style=for-the-badge)](SECURITY.md)
 [![Pre-Release](https://img.shields.io/badge/Pre--Release-v0.1.0-FF9500?style=for-the-badge&logo=github)](https://github.com/Srimi1/Wallps/releases)
 
-[**Download Latest DMG**](https://github.com/Srimi1/Wallps/releases) • [**Explore Features**](#-key-features) • [**Security & Privacy**](#-security--privacy) • [**Architecture**](#-how-it-works) • [**Build from Source**](#-install--build)
+[**Download Latest DMG**](https://github.com/Srimi1/Wallps/releases) • [**Explore Features**](#-key-features) • [**Security & Privacy**](#-security--privacy) • [**Architecture**](#-how-it-works) • [**Build from Source**](#-download--installation)
 
 </div>
 

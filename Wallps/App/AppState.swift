@@ -78,7 +78,44 @@ final class AppState {
         Task { await catalog.refresh(from: prefs.catalogURLString) }
     }
 
+    var activeWallpaperItem: WallpaperItem? {
+        guard let firstID = engine.activeItemIDs.first else { return nil }
+        return library.item(withID: firstID)
+    }
+
+    var isPaused: Bool {
+        engine.userPaused
+    }
+
+    func togglePause() {
+        engine.userPaused.toggle()
+    }
+
+    func isItemActive(_ item: WallpaperItem) -> Bool {
+        engine.activeItemIDs.contains(item.id)
+    }
+
+    func isCatalogEntryActive(_ entry: CatalogEntry) -> Bool {
+        guard let item = library.items.first(where: { $0.catalogID == entry.id }) else { return false }
+        return engine.activeItemIDs.contains(item.id)
+    }
+
+    func applyCatalogEntry(_ entry: CatalogEntry) {
+        // If already downloaded in library, apply immediately!
+        if let existing = library.items.first(where: { $0.catalogID == entry.id }) {
+            apply(existing)
+            return
+        }
+
+        // Otherwise, download and apply immediately upon completion
+        Task {
+            if let item = await catalog.download(entry, into: library) {
+                apply(item)
+            }
+        }
+    }
+
     func download(_ entry: CatalogEntry) {
-        Task { await catalog.download(entry, into: library) }
+        Task { _ = await catalog.download(entry, into: library) }
     }
 }

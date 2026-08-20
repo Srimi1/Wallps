@@ -110,9 +110,12 @@ struct LibraryWindow: View {
                 }
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+            // MARK: - Persistent Active Wallpaper Control Dock
+            ActiveWallpaperDock()
         }
         .background(Theme.background)
-        .frame(minWidth: 920, minHeight: 600)
+        .frame(minWidth: 920, minHeight: 620)
         .alert(
             "Something went wrong",
             isPresented: Binding(
@@ -123,6 +126,92 @@ struct LibraryWindow: View {
             Button("OK", role: .cancel) { state.errorMessage = nil }
         } message: {
             Text(state.errorMessage ?? "")
+        }
+    }
+}
+
+/// Persistent Active Wallpaper Status and Control Bar
+struct ActiveWallpaperDock: View {
+    @Environment(AppState.self) private var state
+
+    var body: some View {
+        HStack(spacing: 16) {
+            if let activeItem = state.activeWallpaperItem {
+                // Live Active Wallpaper Thumbnail & Title
+                HStack(spacing: 12) {
+                    ThumbnailImage(url: state.library.thumbnailURL(for: activeItem))
+                        .aspectRatio(16 / 9, contentMode: .fill)
+                        .frame(width: 54, height: 30)
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                        .beamBorder(cornerRadius: 6, lineWidth: 1.0, isActive: true, glowIntensity: 0.8)
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        HStack(spacing: 6) {
+                            Circle()
+                                .fill(state.isPaused ? Theme.neonAmber : Theme.neonEmerald)
+                                .frame(width: 6, height: 6)
+                            Text(activeItem.title)
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundStyle(Theme.ink)
+                                .lineLimit(1)
+                        }
+
+                        Text(state.isPaused ? "Playback Paused" : state.engine.statusDescription)
+                            .font(.system(size: 11))
+                            .foregroundStyle(Theme.inkSecondary)
+                    }
+                }
+
+                Spacer()
+
+                // Quick Playback Controls
+                HStack(spacing: 8) {
+                    // Pause/Resume Button
+                    Button {
+                        state.togglePause()
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: state.isPaused ? "play.fill" : "pause.fill")
+                                .font(.system(size: 11))
+                            Text(state.isPaused ? "Resume" : "Pause")
+                                .font(.system(size: 12, weight: .medium))
+                        }
+                    }
+                    .buttonStyle(FuturisticGhostButtonStyle())
+                    .help(state.isPaused ? "Resume video playback" : "Pause video playback")
+
+                    // Clear Desktop Button
+                    Button {
+                        state.clearWallpaper()
+                    } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "xmark.circle")
+                                .font(.system(size: 11))
+                            Text("Clear Desktop")
+                                .font(.system(size: 12, weight: .medium))
+                        }
+                    }
+                    .buttonStyle(FuturisticGhostButtonStyle())
+                    .help("Remove wallpaper from screen")
+                }
+            } else {
+                // Idle Desktop Prompt
+                HStack(spacing: 10) {
+                    Image(systemName: "sparkles")
+                        .foregroundStyle(Theme.cyberCyan)
+                    Text("Select any wallpaper to instantly set it on your desktop")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(Theme.inkSecondary)
+                }
+
+                Spacer()
+            }
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+        .background(Theme.surfaceElevated.opacity(0.95))
+        .overlay(alignment: .top) {
+            Divider().background(Theme.hairline)
         }
     }
 }
