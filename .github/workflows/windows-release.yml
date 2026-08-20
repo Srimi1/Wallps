@@ -4,41 +4,82 @@ on:
   push:
     tags:
       - 'v*'
+  # Build on pull requests that touch the Windows app, so breakage is caught
+  # before a tag is cut rather than during a release.
+  pull_request:
+    paths:
+      - 'windows/**'
+      - '.github/workflows/windows-release.yml'
   workflow_dispatch:
+
+# Required for the release step to attach assets. Without this the job's token
+# is read-only and the upload fails after an otherwise successful build.
+# GitHub downgrades this to read-only for pull requests from forks.
+permissions:
+  contents: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   build-windows:
+    name: Build x64
     runs-on: windows-latest
 
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
-          cache-dependency-path: windows/package.json
+          # Must point at the lockfile, not package.json — setup-node hashes
+          # this to key the npm cache.
+          cache-dependency-path: windows/package-lock.json
 
       - name: Install dependencies
         working-directory: windows
         run: npm ci
 
-      - name: Build Windows Installer & Portable Executable
+      # The engine's decision logic is plain Node, so it is worth proving here
+      # before spending several minutes packaging a broken build.
+      - name: Run tests
         working-directory: windows
-        run: npm run build:win
+        run: npm test
 
-      - name: Upload Windows Artifacts
-        uses: actions/upload-artifact@v4
+      - name: Build installer and portable executable
+        working-directory: windows
+        # --publish never: electron-builder must not try to create a release of
+        # its own. Publishing is the release step's job, below.
+        run: npm run build:win -- --publish never
+
+      - name: Show what was built
+        run: Get-ChildItem -Path build\windows -Filter *.exe | Select-Object Name, Length
+        shell: pwsh
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v7
         with:
-          name: Wallps-Windows-Builds
+          name: Wallps-Windows-x64
           path: build/windows/*.exe
+          # Fail loudly rather than publishing an empty artifact. The previous
+          # workflow would have reported success having produced nothing.
+          if-no-files-found: error
+          retention-days: 30
 
-      - name: Release Assets
+      - name: Attach to GitHub Release
         if: startsWith(github.ref, 'refs/tags/')
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: build/windows/*.exe
+          fail_on_unmatched_files: true
+          # Created as a draft so the installer can be downloaded and checked on
+          # a real machine before anyone else can get it. Review it on the
+          # Releases page and press Publish. Set this to false to have tags
+          # publish immediately.
+          draft: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
