@@ -11,18 +11,16 @@
 [![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-M1%20%7C%20M2%20%7C%20M3%20%7C%20M4-007AFF?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/Srimi1/Wallps/releases)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](LICENSE)
 [![Zero Telemetry](https://img.shields.io/badge/Privacy-Zero%20Telemetry-00C7BE?style=for-the-badge)](SECURITY.md)
-[![Upcoming Release](https://img.shields.io/badge/Release-v0.1.0%20(Ready)-34C759?style=for-the-badge&logo=github)](CHANGELOG.md)
+[![Release](https://img.shields.io/badge/Release-v1.0.0%20(Official%20Stable)-34C759?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/Srimi1/Wallps/releases/tag/v1.0.0)
 
-[**Download Latest DMG**](https://github.com/Srimi1/Wallps/releases) • [**Release Notes**](CHANGELOG.md) • [**Verification Report**](docs/RELEASE_VERIFICATION_REPORT.md) • [**Security & Privacy**](SECURITY.md) • [**Build from Source**](#-download--installation)
+[**Download Wallps 1.0 DMG**](https://github.com/Srimi1/Wallps/releases/tag/v1.0.0) • [**Launch Keynote**](KEYNOTE.md) • [**Release Notes**](CHANGELOG.md) • [**Verification Report**](docs/RELEASE_VERIFICATION_REPORT.md) • [**Security Policy**](SECURITY.md)
 
 </div>
 
 ---
 
-> [!NOTE]
-> **Upcoming Official Release (v0.1.0)**: This build is verified against all macOS standards, featuring universal binary support (Apple Silicon & Intel), Hardened Runtime codesigning, zero telemetry, and 1-click instant wallpaper switching. See the full [Verification Report](docs/RELEASE_VERIFICATION_REPORT.md).
-
----
+> [!TIP]
+> **🎉 Wallps 1.0 Official Launch**: Read our official [Launch Keynote](KEYNOTE.md) to explore the design philosophy, 1-click instant switching, and the Quantum Prism engine!
 
 ---
 

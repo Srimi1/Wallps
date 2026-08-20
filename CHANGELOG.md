@@ -7,7 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [0.1.0] - 2026-08-20 (Upcoming Official Release)
+## [1.0.0] - 2026-08-20 (Official Stable Release)
 
 ### 🚀 Highlights
 - **1-Click Instant Wallpaper Application**: Direct wallpaper switching from the Gallery, Desktop Simulator, and Library without extra steps or app restarts.
