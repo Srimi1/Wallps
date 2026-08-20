@@ -32,3 +32,4 @@ xcuserdata/
 *.perspectivev3
 .DS_Store
 .gstack/
+.commandcode/

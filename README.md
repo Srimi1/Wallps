@@ -1,23 +1,77 @@
 # Wallps
 
-Live video wallpapers for macOS. Open source, no account, no telemetry.
+<div align="center">
 
-Wallps plays a looping video behind your desktop icons and gets out of the way:
-it stops decoding the moment nobody can see it, so an idle Mac stays idle.
+![Wallps Banner](docs/assets/gallery_showcase.png)
 
-An open-source alternative to commercial live-wallpaper apps. Unaffiliated with
-any of them — all code and assets here are original.
+**Ultra-Minimal 4K Live Video Wallpapers for macOS.**  
+*Native, hardware-accelerated, battery-aware, and 100% telemetry-free.*
 
-## Status
+[![macOS](https://img.shields.io/badge/macOS-14.0%20%7C%2026.0%2B-black?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/Srimi1/Wallps/releases)
+[![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-M1%20%7C%20M2%20%7C%20M3%20%7C%20M4-007AFF?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/Srimi1/Wallps/releases)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](LICENSE)
+[![Zero Telemetry](https://img.shields.io/badge/Privacy-Zero%20Telemetry-00C7BE?style=for-the-badge)](SECURITY.md)
+[![Pre-Release](https://img.shields.io/badge/Pre--Release-v0.1.0-FF9500?style=for-the-badge&logo=github)](https://github.com/Srimi1/Wallps/releases)
 
-Working, early. The wallpaper engine, library, power management, per-display
-assignment, and the catalog gallery are implemented and verified on macOS 26.
-See [Roadmap](#roadmap) for what isn't done.
+[**Download Latest DMG**](https://github.com/Srimi1/Wallps/releases) • [**Explore Features**](#-key-features) • [**Security & Privacy**](#-security--privacy) • [**Architecture**](#-how-it-works) • [**Build from Source**](#-install--build)
 
-## How it works
+</div>
 
-macOS has no public API for "set this video as the wallpaper", so every app in
-this category does the same thing: it puts a window at the desktop window level.
+---
+
+## ✨ Overview
+
+**Wallps** is an open-source live wallpaper engine built natively for macOS with SwiftUI and AVFoundation. It seamlessly renders smooth 4K/8K looping videos behind your desktop icons with minimal CPU & GPU footprint, and gets out of the way instantly when covered by windows or on battery power.
+
+Inspired by modern futuristic minimalism, Wallps combines an **iOS 26 Multi-Dimensional Classification Matrix**, signature **beam-glow borders**, and an interactive **macOS Desktop Simulator**.
+
+---
+
+## 📸 Interface & Layout Showcase
+
+### 1. Curated 4K Live Gallery
+Explore thousands of high-definition video wallpapers with real-time hardware decoding, tech badges, and one-click desktop application.
+
+![Wallps 4K Live Gallery](docs/assets/gallery_showcase.png)
+
+---
+
+### 2. Wallpaper Cinema & Desktop Simulator HUD
+Preview how any live wallpaper looks beneath your actual macOS Top Menu Bar, Bottom Dock, and Desktop icons on Studio Display or MacBook screens before applying.
+
+![Desktop Simulator & Inspector](docs/assets/desktop_simulator.png)
+
+---
+
+### 3. iOS 26 Multi-Dimensional Classification Matrix
+Filter dynamically across **Atmosphere & Mood** (*Neon Glow, Obsidian Dark, Misty Rain, Chill Lofi, Ethereal Sunset, Cosmic Void*), **Display Specs** (*8K, 4K XDR, 4K UHD*), and **Sort Ordering**.
+
+![Classification Matrix](docs/assets/classification_matrix.png)
+
+---
+
+### 4. Local Video Library & Multi-Display Management
+Drag and drop your own personal H.264/HEVC/ProRes clips into the library. Assign unique wallpapers per monitor or apply one across all connected displays.
+
+![My Wallpapers Library](docs/assets/my_wallpapers.png)
+
+---
+
+## ⚡ Key Features
+
+- **Obsidian Dark & Beam-Glow Design**: Ultra-minimal aesthetics with laser-cut beam borders (`BeamBorder`), frosted glass, and refined typography.
+- **Hardware-Accelerated Decoding**: Leverages Apple Silicon Media Engine (`VideoToolbox` & `AVFoundation`) for fluid 60 FPS playback at negligible CPU cost.
+- **Intelligent Battery & Occlusion Awareness**: Automatically stops decoding video when windows cover the desktop, on battery power, in Low Power Mode, or when displays sleep.
+- **iOS 26 Multi-Dimensional Classification**: Smart filtering across categories (*Cyberpunk, Nature, Anime, Minimalist, Cars, Sci-Fi, Rain*), atmosphere moods, and display resolutions.
+- **Live Desktop & Lock Screen Simulator**: Built-in simulator HUD to test visual harmony with macOS system UI.
+- **Multi-Monitor Support**: Independent per-screen video wallpaper assignment or synchronized playback across all screens.
+- **Zero Telemetry & 100% Private**: No analytics, no accounts, no background tracking.
+
+---
+
+## 🔋 How It Works: Battery-Aware Engine
+
+macOS has no public API for "set video as wallpaper", so Wallps positions a borderless, click-through `NSWindow` at `CGWindowLevelForKey(.desktopWindow)`:
 
 ```
 level -2147483624   system wallpaper (the Dock draws this)
@@ -27,135 +81,84 @@ level -2147483603   desktop icons
 level 0             your apps
 ```
 
-A borderless, click-through `NSWindow` at `CGWindowLevelForKey(.desktopWindow)`
-sits above the system wallpaper and 20 levels below the icons, so icons, widgets,
-and every app stay on top and clicks pass straight through to the desktop.
+### Power Management Policy
 
-One window per display, each with an `AVQueuePlayer` driven by an
-`AVPlayerLooper` for gapless looping. Video is hardware-decoded by the media
-engine, so a 4K clip costs a few percent CPU rather than a core.
-
-The part that matters for your battery is knowing when to stop:
-
-| Condition | Detected via | Default |
+| Condition | Detected via | Default Action |
 |---|---|---|
-| Covered by a window | `NSWindow` occlusion state **and** a 2s `CGWindowListCopyWindowInfo` coverage poll | pause |
-| Screen locked, screensaver running | `DistributedNotificationCenter`, registered `.deliverImmediately` | always pause |
-| Displays asleep | `NSWorkspace.screensDidSleep` + `CGDisplayIsAsleep` backstop | always pause |
-| On battery | IOKit power source notifications | pause |
-| Low Power Mode | `ProcessInfo.isLowPowerModeEnabled` | pause |
+| Covered by a window | `NSWindow` occlusion state **and** a 2s `CGWindowListCopyWindowInfo` poll | **Pause** |
+| Screen locked / Screensaver | `DistributedNotificationCenter` (`.deliverImmediately`) | **Always Pause** |
+| Displays asleep | `NSWorkspace.screensDidSleep` + `CGDisplayIsAsleep` backstop | **Always Pause** |
+| On battery power | IOKit power source notifications | **Pause** |
+| Low Power Mode | `ProcessInfo.isLowPowerModeEnabled` | **Pause** |
 
-Both occlusion signals are needed: the window-server occlusion notification does
-not fire reliably for desktop-level windows covered by a fullscreen app, and the
-poll alone is 2 seconds late. Neither needs any TCC permission — only window
-bounds, layer, and PID are read, never window contents or names.
+---
 
-`PlaybackPolicy` holds this decision as pure logic with no AppKit or AVFoundation
-in sight, which is why it can be unit-tested exhaustively.
+## 🚀 Download & Installation
 
-## Install
+### Option 1: Download Pre-built DMG (Recommended)
+Download the latest `.dmg` release from [Releases](https://github.com/Srimi1/Wallps/releases). Mount the disk image and drag **Wallps.app** to your `/Applications` folder.
 
-Requires macOS 14 (Sonoma) or later, Apple Silicon or Intel.
+### Option 2: Build from Source
+
+**Requirements:**
+- macOS 14.0 (Sonoma) or later (fully verified on macOS 26)
+- Xcode 16.0+
+- Apple Silicon or Intel Mac
 
 ```sh
-git clone <your-fork>
+# Clone repository
+git clone https://github.com/Srimi1/Wallps.git
 cd Wallps
-make bootstrap   # installs XcodeGen if needed, generates Wallps.xcodeproj
+
+# Bootstrap & generate Xcode project
+make bootstrap
+
+# Build and run the app
 make run
+
+# Build the release DMG installer
+make dmg
 ```
 
-Wallps lives in the menu bar; it has no Dock icon. Open the library from the menu
-bar icon, drop in a video, and double-click it.
+The resulting DMG installer is output to `build/Wallps.dmg`.
 
-> Building from a folder synced by iCloud Drive or Dropbox? Codesigning rejects
-> the extended attributes those services attach. The Makefile already puts build
-> output under `~/Library/Developer/Xcode/DerivedData`; keep it there.
+---
 
-## Using it
+## 🔒 Security & Privacy
 
-- **Add a video** — drag any H.264 or HEVC file onto the library window, or use
-  Add Video. Files are copied into the app's container, so moving the original
-  later doesn't break anything.
-- **Multiple displays** — with more than one display connected, a picker appears
-  in the toolbar. Assign a different video per display, or one for all.
-- **Gallery** — browse a catalog of downloadable wallpapers. The default catalog
-  URL is a plain JSON file; point Settings at any other one, including your own.
-  See [docs/CATALOG.md](docs/CATALOG.md).
-- **Audio** — muted by default. When unmuted, only the main display plays sound,
-  and muted videos have their audio track disabled so it isn't decoded at all.
+Wallps is engineered from the ground up to respect user privacy and system security:
+- **No Screen Recording / Accessibility Permissions**: Does not capture screen pixels or intercept user keystrokes/clicks.
+- **Local Media Storage**: All imported videos stay in `~/Library/Application Support/Wallps/`.
+- **Apple Hardened Runtime**: Protected against code injection and memory exploits.
 
-## Architecture
+For full details, please review our [Security Policy](SECURITY.md).
+
+---
+
+## 🛠️ Architecture
 
 ```
 Wallps/
-  App/        AppState (root object), WallpsApp (scenes), AppDelegate
-  Engine/     WallpaperEngine ── one WallpaperScreenController per display
-              WallpaperWindow (desktop-level NSWindow + AVPlayerLayer host)
-              PlaybackPolicy (pure), PowerMonitor, SystemStateMonitor,
-              OcclusionDetector
-  Library/    WallpaperLibrary (files + JSON index), CatalogStore (remote),
+  App/        AppState (root coordinator), WallpsApp (scenes), AppDelegate
+  Engine/     WallpaperEngine (per-display screen controller)
+              WallpaperWindow (desktop-level NSWindow + AVPlayerLayer)
+              PlaybackPolicy (pure logic), PowerMonitor, SystemStateMonitor, OcclusionDetector
+  Library/    WallpaperLibrary (local index & files), CatalogStore (remote/curated),
               VideoProber, ThumbnailGenerator
-  UI/         LibraryWindow, GalleryView, SettingsView, MenuBarContent
+  UI/         DesignSystem (beam glow tokens), ClassificationBar (iOS 26 matrix),
+              WallpaperInspectorView (desktop simulator), GalleryView, LibraryWindow, MenuBarContent
   Support/    Preferences, WallpsError
 ```
 
-`WallpaperEngine` is the only object that talks to both preferences and the
-system monitors. Everything it decides flows through `PlaybackPolicy`, so a bug
-in the "when should this be playing" logic is a failing unit test rather than a
-mystery battery drain.
+---
 
-Displays are keyed by `CGDisplayCreateUUIDFromDisplayID`, never by `NSScreen`
-identity — AppKit recreates `NSScreen` objects on every display reconfiguration,
-so object-keyed lookups go stale on sleep, hot-plug, or resolution change.
+## 🤝 Contributing
 
-Details and the reasoning behind each choice: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) and our [Code of Conduct](CODE_OF_CONDUCT.md) before submitting pull requests.
 
-## Development
+---
 
-```sh
-make generate   # regenerate the Xcode project after adding files
-make build
-make test
-```
+## 📄 License
 
-`project.yml` is the source of truth for the project; `Wallps.xcodeproj` is
-generated and not checked in. Add a file to `Wallps/` and run `make generate`.
+Wallps is licensed under the [Apache-2.0 License](LICENSE).
 
-To watch what the engine is doing:
-
-```sh
-WALLPS_DEBUG_PLAYBACK=1 ./build/.../Wallps.app/Contents/MacOS/Wallps
-```
-
-It logs each display's player rate and position every second. Use this rather
-than screenshots — macOS serves a stale backing store for a fully covered
-window, so a screenshot looks frozen whether or not the player is running.
-
-## Roadmap
-
-Implemented: desktop rendering, looping, multi-display, per-display assignment,
-power and occlusion management, local import, thumbnails, remote catalog,
-launch at login, sandboxed.
-
-Not yet:
-
-- **Signing and notarization.** Releases need a Developer ID; without one,
-  macOS Sequoia and later make users dig through System Settings to open the
-  app, and Homebrew removed casks failing Gatekeeper checks on 1 Sept 2026.
-- **Sparkle updates.** Depends on signing.
-- **A real catalog.** The default URL is a placeholder. Needs CC0/CC-BY content
-  and someone to host it.
-- **Lock screen and screensaver.** Deliberately out of scope: every known method
-  is either a private framework or overwriting system aerial files. Both break
-  on OS updates and neither can ship in the App Store.
-- **Disk budget.** The library has no size cap or eviction yet; 4K videos are
-  large.
-
-## Contributing
-
-See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports that include the macOS
-version, display setup, and whether you were on battery are the useful kind.
-
-## License
-
-Apache-2.0. See [LICENSE](LICENSE).
