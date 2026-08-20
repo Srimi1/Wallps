@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <!-- No inline script and no remote anything; the video comes from wallps:// only. -->
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; media-src 'self'">
+    <title>Wallps wallpaper surface</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        /* Opaque black, not transparent: a WS_CHILD of WorkerW cannot composite
+           alpha, and black is also the right letterbox colour in Fit mode. */
+        background: #000;
+        /* The window is click-through by style, but belt and braces. */
+        pointer-events: none;
+        user-select: none;
+      }
+      video {
+        width: 100vw;
+        height: 100vh;
+        display: block;
+        object-fit: cover;
+        background: #000;
+      }
+    </style>
+  </head>
+  <body>
+    <video id="surface" autoplay loop muted playsinline disablepictureinpicture></video>
+    <script src="wallpaper-surface.js"></script>
+  </body>
+</html>

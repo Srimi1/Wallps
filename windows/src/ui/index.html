@@ -3,6 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!--
+    No remote script can ever run: script-src is 'self' only. https is allowed
+    for img/media/connect because the gallery loads a catalog the user chooses
+    and hosts themselves, which is the whole point of that feature.
+  -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'none';
+                 script-src 'self';
+                 style-src 'self' 'unsafe-inline';
+                 img-src 'self' data: https:;
+                 media-src 'self' blob: https:;
+                 connect-src 'self' https:;
+                 font-src 'self'">
   <title>Wallps — 4K Live Wallpapers</title>
   <link rel="stylesheet" href="styles.css">
 </head>
@@ -11,17 +24,20 @@
   <!-- Frameless Titlebar -->
   <div class="titlebar">
     <div class="titlebar-brand">
-      <img src="../../assets/icon.ico" alt="Wallps" />
+      <img src="../assets/icon.ico" alt="Wallps" />
       <span class="brand-text">WALLPS</span>
       <span class="pro-badge">PRO</span>
     </div>
 
     <div class="nav-tabs">
-      <div class="nav-tab active">
+      <div class="nav-tab active" data-tab="gallery">
         <span>✨</span> Explore Gallery
       </div>
-      <div class="nav-tab">
+      <div class="nav-tab" data-tab="library">
         <span>📁</span> My Wallpapers
+      </div>
+      <div class="nav-tab" data-tab="settings">
+        <span>⚙️</span> Settings
       </div>
     </div>
 
@@ -33,102 +49,203 @@
 
   <!-- Main Scrollable Area -->
   <div class="main-content">
-    
-    <!-- Hero Banner -->
-    <div class="hero-section">
-      <div>
-        <div class="hero-meta">
-          <span class="hero-tag">LIVE 4K GALLERY</span>
-          <span class="hero-badge">● WINDOWS 11 & 10 READY</span>
+
+    <!-- ============================= GALLERY ============================= -->
+    <section class="tab-view" data-view="gallery">
+      <div class="hero-section">
+        <div>
+          <div class="hero-meta">
+            <span class="hero-tag">LIVE 4K GALLERY</span>
+            <span class="hero-badge">● WINDOWS 11 &amp; 10 READY</span>
+          </div>
+          <h1 class="hero-title">Curated 4K Live Wallpapers</h1>
+          <p class="hero-desc">Browse a catalog you host, then download straight into your library.</p>
         </div>
-        <h1 class="hero-title">Curated 4K Live Wallpapers</h1>
-        <p class="hero-desc">Ultra-high definition video backgrounds with hardware-accelerated decoding & battery-aware occlusion.</p>
-      </div>
 
-      <div class="stats-card">
-        <div class="stats-number">2,719</div>
-        <div class="stats-label">CURATED ASSETS</div>
-      </div>
-    </div>
-
-    <!-- iOS 26 Classification Bar -->
-    <div class="classification-bar">
-      <div class="search-box">
-        <span>🔍</span>
-        <input type="text" id="searchInput" placeholder="Search 4K live wallpapers…" />
-      </div>
-
-      <div class="category-track" id="categoryTrack"></div>
-
-      <button class="filter-btn" onclick="toggleFilterDrawer()">
-        <span>⚙️</span> Filters
-      </button>
-    </div>
-
-    <!-- Expanded Multi-Dimensional Matrix Drawer -->
-    <div class="matrix-drawer" id="matrixDrawer" style="display: none;">
-      <div>
-        <div class="matrix-col-title">✨ ATMOSPHERE & MOOD</div>
-        <div class="matrix-tokens">
-          <div class="matrix-chip" onclick="selectMood('Neon Glow')">Neon Glow</div>
-          <div class="matrix-chip" onclick="selectMood('Obsidian Dark')">Obsidian Dark</div>
-          <div class="matrix-chip" onclick="selectMood('Misty Rain')">Misty Rain</div>
-          <div class="matrix-chip" onclick="selectMood('Chill Lofi')">Chill Lofi</div>
-          <div class="matrix-chip" onclick="selectMood('Cosmic Void')">Cosmic Void</div>
+        <div class="stats-card">
+          <div class="stats-number" id="galleryCount">—</div>
+          <div class="stats-label">CATALOG ENTRIES</div>
         </div>
       </div>
 
-      <div>
-        <div class="matrix-col-title">🖥️ DISPLAY & SPECS</div>
-        <div class="matrix-tokens">
-          <div class="matrix-chip" onclick="selectRes('8K Ultra')">8K Ultra</div>
-          <div class="matrix-chip" onclick="selectRes('4K XDR')">4K XDR</div>
-          <div class="matrix-chip" onclick="selectRes('4K UHD')">4K UHD</div>
+      <div class="classification-bar">
+        <div class="search-box">
+          <span>🔍</span>
+          <input type="text" id="searchInput" placeholder="Search live wallpapers…" />
+        </div>
+
+        <div class="category-track" id="categoryTrack"></div>
+
+        <button class="filter-btn" id="filterToggle">
+          <span>⚙️</span> Filters
+        </button>
+      </div>
+
+      <div class="matrix-drawer" id="matrixDrawer" style="display: none;">
+        <div>
+          <div class="matrix-col-title">✨ ATMOSPHERE &amp; MOOD</div>
+          <div class="matrix-tokens" id="moodTokens"></div>
+        </div>
+
+        <div>
+          <div class="matrix-col-title">🖥️ DISPLAY &amp; SPECS</div>
+          <div class="matrix-tokens" id="resTokens"></div>
+        </div>
+
+        <div>
+          <div class="matrix-col-title">⇅ SORT &amp; FLOW</div>
+          <div class="matrix-tokens" id="sortTokens"></div>
         </div>
       </div>
 
-      <div>
-        <div class="matrix-col-title">⇅ SORT & FLOW</div>
-        <div class="matrix-tokens">
-          <div class="matrix-chip active">Trending</div>
-          <div class="matrix-chip">Newest Drops</div>
-          <div class="matrix-chip">Highest Resolution</div>
+      <div class="cards-grid" id="galleryGrid"></div>
+      <div class="empty-state" id="galleryEmpty" style="display: none;"></div>
+    </section>
+
+    <!-- ========================== MY WALLPAPERS ========================== -->
+    <section class="tab-view" data-view="library" hidden>
+      <div class="hero-section">
+        <div>
+          <div class="hero-meta">
+            <span class="hero-tag">LOCAL LIBRARY</span>
+          </div>
+          <h1 class="hero-title">My Wallpapers</h1>
+          <p class="hero-desc" id="librarySubtitle">Videos you have imported, stored on this PC.</p>
+        </div>
+
+        <button class="btn-apply" id="addVideoBtn" style="padding: 10px 18px;">＋ Add Video…</button>
+      </div>
+
+      <div class="cards-grid" id="libraryGrid"></div>
+      <div class="empty-state" id="libraryEmpty" style="display: none;"></div>
+    </section>
+
+    <!-- ============================= SETTINGS ============================ -->
+    <section class="tab-view" data-view="settings" hidden>
+      <div class="hero-section">
+        <div>
+          <div class="hero-meta"><span class="hero-tag">PREFERENCES</span></div>
+          <h1 class="hero-title">Settings</h1>
+          <p class="hero-desc">Playback, battery behaviour, and where your catalog comes from.</p>
         </div>
       </div>
-    </div>
 
-    <!-- Cards Grid -->
-    <div class="cards-grid" id="cardsGrid"></div>
+      <div class="settings-grid">
+        <div class="settings-group">
+          <div class="matrix-col-title">▶ VIDEO</div>
+          <label class="settings-row">
+            <span class="settings-label">Scaling</span>
+            <select id="setGravity" class="settings-input">
+              <option value="fill">Fill</option>
+              <option value="fit">Fit</option>
+              <option value="stretch">Stretch</option>
+            </select>
+          </label>
+          <label class="settings-row">
+            <span class="settings-label">Mute audio</span>
+            <input type="checkbox" id="setMuted" />
+          </label>
+          <label class="settings-row" id="volumeRow">
+            <span class="settings-label">Volume</span>
+            <input type="range" id="setVolume" min="0" max="1" step="0.05" class="settings-input" />
+          </label>
+        </div>
+
+        <div class="settings-group">
+          <div class="matrix-col-title">🔋 BATTERY &amp; PERFORMANCE</div>
+          <label class="settings-row">
+            <span class="settings-label">Pause on battery power</span>
+            <input type="checkbox" id="setPauseOnBattery" />
+          </label>
+          <label class="settings-row">
+            <span class="settings-label">Pause in Battery Saver</span>
+            <input type="checkbox" id="setPauseInLowPowerMode" />
+          </label>
+          <label class="settings-row">
+            <span class="settings-label">Pause when covered by a window</span>
+            <input type="checkbox" id="setPauseWhenHidden" />
+          </label>
+          <p class="settings-hint">
+            Wallps always stops while the screen is locked, the screensaver is running, or the
+            display is asleep — decoding video nobody can see is pure waste.
+          </p>
+        </div>
+
+        <div class="settings-group">
+          <div class="matrix-col-title">✨ GALLERY</div>
+          <label class="settings-row settings-row-stacked">
+            <span class="settings-label">Catalog URL</span>
+            <input type="text" id="setCatalogURL" class="settings-input"
+                   placeholder="https://example.com/catalog.json" />
+          </label>
+          <p class="settings-hint">
+            Wallps ships no bundled catalog. Point this at a <code>catalog.json</code> you host —
+            the format is documented in <code>docs/CATALOG.md</code>. Leave it empty to use
+            Wallps purely with your own imported videos.
+          </p>
+          <div class="settings-actions">
+            <button class="dock-btn" id="reloadCatalogBtn">Reload Gallery</button>
+            <button class="dock-btn" id="openFolderBtn">Show Library Folder</button>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <div class="matrix-col-title">🖥️ SYSTEM</div>
+          <label class="settings-row">
+            <span class="settings-label">Launch Wallps at login</span>
+            <input type="checkbox" id="setLaunchAtLogin" />
+          </label>
+          <p class="settings-hint">
+            Without this the wallpaper is gone after every reboot, since Wallps has to be
+            running to draw it.
+          </p>
+          <div class="settings-actions">
+            <button class="dock-btn" id="copyDiagnosticsBtn">Copy Diagnostics</button>
+          </div>
+        </div>
+      </div>
+    </section>
 
   </div>
 
   <!-- Persistent Active Wallpaper Dock -->
   <div class="active-dock" id="activeDock"></div>
 
+  <!-- Drag-and-drop overlay -->
+  <div class="drop-overlay" id="dropOverlay">
+    <div class="drop-card">
+      <div style="font-size: 32px;">⬇</div>
+      <div>Drop video to add to your library</div>
+    </div>
+  </div>
+
+  <!-- Error toast -->
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
   <!-- Wallpaper Cinema Inspector & Simulator Modal -->
   <div class="modal-backdrop" id="inspectorModal" style="display: none;">
     <div class="inspector-modal">
       <div class="inspector-header">
         <div style="display: flex; gap: 8px;">
-          <span class="badge-tag cyan">4K XDR</span>
-          <span class="badge-tag emerald">60 FPS</span>
+          <span class="badge-tag cyan" id="badgeRes">—</span>
+          <span class="badge-tag emerald" id="badgeFps">—</span>
         </div>
 
         <div style="display: flex; gap: 4px; background: rgba(255,255,255,0.06); padding: 3px; border-radius: 99px;">
-          <button class="nav-tab active" id="simBtnWin" onclick="setSimMode('win11')">🪟 Windows 11 Desktop</button>
-          <button class="nav-tab" id="simBtnMac" onclick="setSimMode('mac')">🍎 macOS Desktop</button>
+          <button class="nav-tab active" id="simBtnWin">🪟 Windows 11 Desktop</button>
+          <button class="nav-tab" id="simBtnMac">🍎 macOS Desktop</button>
         </div>
 
-        <button class="win-btn" onclick="closeInspector()" style="font-size: 14px;">✕</button>
+        <button class="win-btn" id="closeInspectorBtn" style="font-size: 14px;">✕</button>
       </div>
 
       <div class="inspector-body">
         <div class="inspector-stage">
           <video id="simVideo" autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
-          
+
           <div class="simulator-overlay">
             <div id="simMenubarMac" style="display: none; background: rgba(0,0,0,0.5); padding: 4px 12px; font-size: 11px; color: #fff; justify-content: space-between;">
-              <span> Finder File Edit View Window</span>
+              <span> Finder File Edit View Window</span>
               <span>10:42 PM</span>
             </div>
 
@@ -162,18 +279,20 @@
           <div style="border-top: 1px solid var(--hairline); padding-top: 12px;">
             <div style="font-size: 10px; font-family: monospace; font-weight: 700; color: var(--ink-tertiary); margin-bottom: 8px;">TECHNICAL DIAGNOSTICS</div>
             <div style="display: flex; flex-direction: column; gap: 6px;">
-              <div class="spec-item"><span class="spec-label">Resolution</span><span class="spec-val" id="specRes"></span></div>
-              <div class="spec-item"><span class="spec-label">Framerate</span><span class="spec-val" id="specFps"></span></div>
-              <div class="spec-item"><span class="spec-label">Hardware Acceleration</span><span class="spec-val">DirectX 12 / D3D11</span></div>
-              <div class="spec-item"><span class="spec-label">File Size</span><span class="spec-val" id="specSize"></span></div>
+              <div class="spec-item"><span class="spec-label">Resolution</span><span class="spec-val" id="specRes">—</span></div>
+              <div class="spec-item"><span class="spec-label">Framerate</span><span class="spec-val" id="specFps">—</span></div>
+              <div class="spec-item"><span class="spec-label">Codec</span><span class="spec-val" id="specCodec">—</span></div>
+              <div class="spec-item"><span class="spec-label">Duration</span><span class="spec-val" id="specDuration">—</span></div>
+              <div class="spec-item"><span class="spec-label">File Size</span><span class="spec-val" id="specSize">—</span></div>
+              <div class="spec-item"><span class="spec-label">Hardware Decode</span><span class="spec-val" id="specDecode">—</span></div>
             </div>
           </div>
 
           <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
-            <button class="btn-apply" id="modalApplyBtn" style="padding: 10px;" onclick="applyWallpaper(state.inspectingItem.id)">
+            <button class="btn-apply" id="modalApplyBtn" style="padding: 10px;">
               ✨ Set as Live Wallpaper
             </button>
-            <button class="dock-btn" style="justify-content: center; padding: 8px;" onclick="closeInspector()">
+            <button class="dock-btn" id="modalCloseBtn" style="justify-content: center; padding: 8px;">
               Close Simulator
             </button>
           </div>
@@ -182,6 +301,6 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>

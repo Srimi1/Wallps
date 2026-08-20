@@ -8,49 +8,57 @@
   "license": "Apache-2.0",
   "scripts": {
     "start": "electron .",
+    "test": "node --test",
     "build:win": "electron-builder --win",
     "build:portable": "electron-builder --win portable",
     "build:nsis": "electron-builder --win nsis"
   },
+  "dependencies": {
+    "koffi": "^3.1.6"
+  },
   "devDependencies": {
-    "electron": "^31.0.0",
-    "electron-builder": "^24.13.3"
+    "electron": "^43.4.1",
+    "electron-builder": "^26.15.3"
   },
   "build": {
-    "appId": "app.wallps.wallps",
+    "appId": "app.wallps.Wallps",
     "productName": "Wallps",
     "copyright": "Copyright © 2026 Wallps contributors. Apache-2.0",
     "directories": {
       "output": "../build/windows"
     },
     "files": [
+      "package.json",
       "src/**/*",
-      "assets/**/*"
+      "assets/**/*",
+      "node_modules/**/*",
+      "!src/**/*.test.js"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "**/*.node",
+      "**/node_modules/@koromix/**"
     ],
     "win": {
       "target": [
-        {
-          "target": "nsis",
-          "arch": ["x64"]
-        },
-        {
-          "target": "portable",
-          "arch": ["x64"]
-        }
+        "nsis",
+        "portable"
       ],
       "icon": "assets/icon.ico",
-      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "artifactName": "${productName}-Setup-${version}-${arch}.${ext}",
       "publisherName": "Wallps Contributors"
     },
     "nsis": {
       "oneClick": false,
+      "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false,
       "shortcutName": "Wallps"
     },
     "portable": {
-      "artifactName": "${productName}-Portable-${version}-x64.exe"
+      "artifactName": "${productName}-Portable-${version}-${arch}.${ext}"
     }
   }
 }

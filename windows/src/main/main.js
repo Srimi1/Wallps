@@ -1,13 +1,105 @@
-const { app, BrowserWindow, ipcMain, Tray, Menu, dialog, screen } = require('electron');
-const path = require('path');
-const fs = require('fs');
-const engine = require('../engine/workerw');
+'use strict';
+
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  Tray,
+  Menu,
+  dialog,
+  shell,
+  clipboard,
+  screen,
+  powerMonitor,
+  powerSaveBlocker,
+  protocol,
+  net,
+} = require('electron');
+const path = require('node:path');
+
+const protocolModule = require('./protocol');
+const { Library } = require('./library');
+const { VideoProber } = require('./probe');
+const { SettingsStore } = require('../shared/settings');
+const { SUPPORTED_EXTENSIONS } = require('../shared/libraryStore');
+const { ConditionsMonitor } = require('../engine/conditions');
+const { trayMenuTemplate } = require('../shared/trayMenu');
+const { WallpaperEngine } = require('../engine/engine');
+const host = require('../engine/workerw');
+const { logger, dump } = require('../shared/log');
+
+const log = logger('main');
+
+const UI_DIR = path.join(__dirname, '..', 'ui');
+const ASSETS_DIR = path.join(__dirname, '..', '..', 'assets');
+const ICON_PATH = path.join(ASSETS_DIR, 'icon.ico');
 
 let mainWindow = null;
-let wallpaperWindows = [];
 let tray = null;
-let activeWallpaper = null;
-let isPaused = false;
+let settings = null;
+let library = null;
+let prober = null;
+let engine = null;
+let conditions = null;
+let isQuitting = false;
+
+// Two instances would fight over the WorkerW slot and leave the desktop in a
+// mess, so the second one hands off to the first and exits.
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => showMainWindow());
+  protocolModule.registerPrivileged(protocol);
+  app.whenReady().then(bootstrap).catch((error) => {
+    log.error('startup failed:', error);
+    dialog.showErrorBox('Wallps failed to start', String(error?.stack ?? error));
+    app.quit();
+  });
+}
+
+async function bootstrap() {
+  const userData = app.getPath('userData');
+
+  settings = new SettingsStore(path.join(userData, 'settings.json'));
+  settings.load();
+
+  protocolModule.install({
+    protocol,
+    net,
+    uiDir: UI_DIR,
+    assetsDir: ASSETS_DIR,
+    libraryDir: userData,
+  });
+
+  prober = new VideoProber({ BrowserWindow, app, uiDir: UI_DIR });
+  library = new Library({ rootDir: userData, prober });
+  library.load();
+
+  conditions = new ConditionsMonitor({ screen, powerMonitor });
+  engine = new WallpaperEngine({
+    BrowserWindow,
+    screen,
+    powerSaveBlocker,
+    settings,
+    library,
+    conditions,
+  });
+  engine.on('changed', broadcastStatus);
+
+  registerIpc();
+  createMainWindow();
+  createTray();
+
+  await engine.start();
+  applyLaunchAtLogin(settings.get('launchAtLogin'));
+  watchForExplorerRestart();
+
+  log.info(`ready — userData=${userData}`);
+  log.info('desktop host:', JSON.stringify(host.describe()));
+}
+
+// --- Windows -------------------------------------------------------------
 
 function createMainWindow() {
   mainWindow = new BrowserWindow({
@@ -16,173 +108,277 @@ function createMainWindow() {
     minWidth: 940,
     minHeight: 620,
     frame: false,
-    titleBarStyle: 'hidden',
-    backgroundColor: '#050508',
-    icon: path.join(__dirname, '../../assets/icon.ico'),
+    show: false,
+    backgroundColor: '#08080A',
+    icon: ICON_PATH,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
-      contextIsolation: true
-    }
+      contextIsolation: true,
+    },
   });
 
-  mainWindow.loadFile(path.join(__dirname, '../ui/index.html'));
+  // A renderer exception would otherwise be invisible from the terminal, which
+  // matters most on a machine we cannot attach a debugger to.
+  mainWindow.webContents.on('console-message', (event) => {
+    const level = event.level === 'error' || event.level === 'warning' ? 'warn' : 'debug';
+    log[level](`renderer(${event.lineNumber}): ${event.message}`);
+  });
+  mainWindow.webContents.on('did-fail-load', (_event, code, description, url) => {
+    log.error(`renderer failed to load ${url}: ${description} (${code})`);
+  });
+  mainWindow.webContents.on('render-process-gone', (_event, details) => {
+    log.error('renderer process gone:', JSON.stringify(details));
+  });
 
+  mainWindow.loadURL(protocolModule.uiURL('index.html'));
+  mainWindow.once('ready-to-show', () => mainWindow.show());
+
+  // Closing the window hides to the tray — the wallpaper keeps running, which
+  // is the whole point of the app.
   mainWindow.on('close', (event) => {
-    // Hide to tray on close
-    if (!app.isQuitting) {
-      event.preventDefault();
-      mainWindow.hide();
-    }
+    if (isQuitting) return;
+    event.preventDefault();
+    mainWindow.hide();
+  });
+
+  mainWindow.on('closed', () => {
+    mainWindow = null;
   });
 }
 
-function createWallpaperWindows(videoUrl) {
-  // Close existing wallpaper windows
-  wallpaperWindows.forEach(win => {
-    try { win.close(); } catch (e) {}
-  });
-  wallpaperWindows = [];
+function showMainWindow() {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    createMainWindow();
+    return;
+  }
+  if (mainWindow.isMinimized()) mainWindow.restore();
+  mainWindow.show();
+  mainWindow.focus();
+}
 
-  const displays = screen.getAllDisplays();
+// --- Tray ----------------------------------------------------------------
 
-  displays.forEach((display) => {
-    const win = new BrowserWindow({
-      x: display.bounds.x,
-      y: display.bounds.y,
-      width: display.bounds.width,
-      height: display.bounds.height,
-      frame: false,
-      transparent: true,
-      enableLargerThanScreen: true,
-      hasShadow: false,
-      focusable: false,
-      skipTaskbar: true,
-      webPreferences: {
-        nodeIntegration: false,
-        contextIsolation: true
-      }
-    });
-
-    win.loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(`
-      <!DOCTYPE html>
-      <html>
-      <head>
-        <style>
-          * { margin: 0; padding: 0; overflow: hidden; background: #000; }
-          video { width: 100vw; height: 100vh; object-fit: cover; }
-        </style>
-      </head>
-      <body>
-        <video id="v" src="${videoUrl}" autoplay loop muted playsinline></video>
-      </body>
-      </html>
-    `)}`);
-
-    const hwnd = win.getNativeWindowHandle();
-    engine.attachToDesktop(hwnd.readInt32LE ? hwnd.readInt32LE(0) : hwnd.readBigInt64LE(0));
-    wallpaperWindows.push(win);
-  });
+/** Mirrors the menu-bar extra in Wallps/UI/MenuBarContent.swift. */
+function buildTrayMenu() {
+  return Menu.buildFromTemplate(
+    trayMenuTemplate({
+      status: engine ? engine.status() : undefined,
+      recent: library ? library.displayModels() : [],
+      actions: {
+        togglePause: () => engine.toggleUserPaused(),
+        openLibrary: showMainWindow,
+        applyWallpaper: (id) => engine.assign(id, 'all'),
+        clearWallpaper: () => engine.assign(null, 'all'),
+        copyDiagnostics,
+        quit: () => {
+          isQuitting = true;
+          app.quit();
+        },
+      },
+    })
+  );
 }
 
 function createTray() {
-  const iconPath = path.join(__dirname, '../../assets/icon.ico');
-  if (fs.existsSync(iconPath)) {
-    tray = new Tray(iconPath);
-  } else {
-    tray = new Tray(path.join(__dirname, '../../assets/icon.ico'));
+  try {
+    tray = new Tray(ICON_PATH);
+  } catch (error) {
+    // The .ico is a Windows resource; on macOS, where the app only runs for UI
+    // work, failing to build a tray icon must not stop the app from starting.
+    log.warn('tray unavailable:', error);
+    return;
   }
-
-  const contextMenu = Menu.buildFromTemplate([
-    { label: 'Wallps 1.0', enabled: false },
-    { type: 'separator' },
-    { label: 'Open Wallps', click: () => mainWindow.show() },
-    {
-      label: 'Pause / Resume',
-      click: () => {
-        isPaused = !isPaused;
-        broadcastStatus();
-      }
-    },
-    {
-      label: 'Clear Wallpaper',
-      click: () => {
-        wallpaperWindows.forEach(win => win.close());
-        wallpaperWindows = [];
-        activeWallpaper = null;
-        broadcastStatus();
-      }
-    },
-    { type: 'separator' },
-    { label: 'Quit Wallps', click: () => { app.isQuitting = true; app.quit(); } }
-  ]);
-
-  tray.setToolTip('Wallps 4K Live Wallpapers');
-  tray.setContextMenu(contextMenu);
-  tray.on('double-click', () => mainWindow.show());
+  tray.setToolTip('Wallps — 4K live wallpapers');
+  tray.setContextMenu(buildTrayMenu());
+  tray.on('double-click', showMainWindow);
 }
+
+function refreshTray() {
+  if (tray && !tray.isDestroyed()) tray.setContextMenu(buildTrayMenu());
+}
+
+// --- Status broadcast ----------------------------------------------------
 
 function broadcastStatus() {
+  refreshTray();
   if (mainWindow && !mainWindow.isDestroyed()) {
-    mainWindow.webContents.send('status-update', {
-      activeWallpaper,
-      isPaused
-    });
+    mainWindow.webContents.send('status-update', engine.status());
   }
 }
 
-// IPC Handlers
-ipcMain.handle('apply-wallpaper', (event, wallpaper) => {
-  activeWallpaper = wallpaper;
-  createWallpaperWindows(wallpaper.video);
-  broadcastStatus();
-  return { success: true };
-});
+// --- Explorer restarts ---------------------------------------------------
 
-ipcMain.handle('clear-wallpaper', () => {
-  wallpaperWindows.forEach(win => win.close());
-  wallpaperWindows = [];
-  activeWallpaper = null;
-  broadcastStatus();
-  return { success: true };
-});
+/**
+ * Explorer restarting destroys every WorkerW and orphans our windows. Explorer
+ * broadcasts `TaskbarCreated` when it comes back, which is the cue to re-attach.
+ */
+function watchForExplorerRestart() {
+  if (process.platform !== 'win32' || !mainWindow) return;
+  const message = host.taskbarCreatedMessage();
+  if (!message) return;
+  try {
+    mainWindow.hookWindowMessage(message, () => {
+      // Explorer is still setting itself up when it broadcasts; re-attaching
+      // immediately finds no WorkerW.
+      setTimeout(() => engine.reattachAll('explorer restarted'), 1500);
+    });
+    log.info(`watching for TaskbarCreated (message ${message})`);
+  } catch (error) {
+    log.warn('could not hook TaskbarCreated:', error);
+  }
+}
 
-ipcMain.handle('toggle-pause', () => {
-  isPaused = !isPaused;
-  wallpaperWindows.forEach(win => {
-    win.webContents.executeJavaScript(`
-      const v = document.getElementById('v');
-      if (v) { ${isPaused} ? v.pause() : v.play(); }
-    `);
+// --- Diagnostics ---------------------------------------------------------
+
+async function copyDiagnostics() {
+  let details = {};
+  try {
+    details = await engine.describe();
+  } catch (error) {
+    details = { error: String(error) };
+  }
+  const report = [
+    `Wallps ${app.getVersion()} — diagnostics`,
+    `Electron ${process.versions.electron} / Chrome ${process.versions.chrome}`,
+    `${process.platform} ${process.arch} ${require('node:os').release()}`,
+    '',
+    JSON.stringify(details, null, 2),
+    '',
+    '--- log ---',
+    dump(),
+  ].join('\n');
+  clipboard.writeText(report);
+  log.info('diagnostics copied to clipboard');
+}
+
+// --- Launch at login -----------------------------------------------------
+
+function applyLaunchAtLogin(enabled) {
+  try {
+    app.setLoginItemSettings({
+      openAtLogin: Boolean(enabled),
+      path: process.execPath,
+      args: ['--hidden'],
+    });
+  } catch (error) {
+    log.warn('could not update launch-at-login:', error);
+  }
+}
+
+// --- IPC -----------------------------------------------------------------
+
+function registerIpc() {
+  const handle = (channel, fn) => {
+    ipcMain.handle(channel, async (_event, ...args) => {
+      try {
+        return { ok: true, value: await fn(...args) };
+      } catch (error) {
+        log.warn(`ipc ${channel} failed:`, error);
+        return { ok: false, error: error?.message ?? String(error) };
+      }
+    });
+  };
+
+  handle('library:list', () => library.displayModels());
+  handle('library:import', async () => {
+    const result = await dialog.showOpenDialog(mainWindow, {
+      title: 'Add videos to your library',
+      properties: ['openFile', 'multiSelections'],
+      filters: [{ name: 'Video Files', extensions: SUPPORTED_EXTENSIONS }],
+    });
+    if (result.canceled || !result.filePaths.length) return { imported: [], failures: [] };
+    return importPaths(result.filePaths);
   });
+  handle('library:import-paths', (paths) => importPaths(paths));
+  handle('library:import-download', async (payload) => {
+    const item = await library.importDownload(payload);
+    if (!engine.hasActiveWallpaper) await engine.assign(item.id, 'all');
+    broadcastStatus();
+    return item.id;
+  });
+  handle('library:delete', async (id) => {
+    const removed = library.delete(id);
+    if (removed) await engine.wallpaperRemoved(id);
+    return removed;
+  });
+  handle('library:rename', (id, title) => library.rename(id, title));
+  handle('library:reveal', (id) => {
+    const item = library.item(id);
+    if (!item) return false;
+    shell.showItemInFolder(path.join(library.rootDir, 'Videos', item.videoFilename));
+    return true;
+  });
+  handle('library:open-folder', () => shell.openPath(library.rootDir));
+
+  handle('wallpaper:apply', async (id, target) => {
+    await engine.assign(id, target ?? 'all');
+    return engine.status();
+  });
+  handle('wallpaper:clear', async (target) => {
+    await engine.assign(null, target ?? 'all');
+    return engine.status();
+  });
+  handle('wallpaper:toggle-pause', () => {
+    engine.toggleUserPaused();
+    return engine.status();
+  });
+
+  handle('status:get', () => engine.status());
+  handle('settings:get', () => settings.all());
+  handle('settings:update', async (patch) => {
+    const before = settings.all();
+    const after = settings.update(patch);
+    if (after.launchAtLogin !== before.launchAtLogin) applyLaunchAtLogin(after.launchAtLogin);
+    await engine.applyAssignments();
+    return after;
+  });
+  handle('settings:reset', async () => {
+    const values = settings.reset();
+    applyLaunchAtLogin(values.launchAtLogin);
+    await engine.applyAssignments();
+    return values;
+  });
+
+  handle('diagnostics:copy', () => copyDiagnostics().then(() => true));
+
+  handle('window:minimize', () => mainWindow?.minimize());
+  handle('window:close', () => mainWindow?.hide());
+}
+
+async function importPaths(filePaths) {
+  const { imported, failures } = await library.importFiles(filePaths);
+  // First import on a fresh install should feel instant, so it goes straight to
+  // the desktop — matching AppState.importVideos on macOS.
+  if (imported.length && !engine.hasActiveWallpaper) {
+    await engine.assign(imported[0].id, 'all');
+  }
   broadcastStatus();
-  return { isPaused };
+  return { imported: imported.map((item) => item.id), failures };
+}
+
+// --- Lifecycle -----------------------------------------------------------
+
+app.on('window-all-closed', () => {
+  // Deliberately empty: this is a tray app, and the wallpaper outlives its
+  // windows. (The previous implementation called preventDefault() here, which
+  // does nothing — the event is not cancellable.)
 });
 
-ipcMain.handle('window-minimize', () => mainWindow.minimize());
-ipcMain.handle('window-close', () => mainWindow.hide());
-
-ipcMain.handle('import-videos', async () => {
-  const result = await dialog.showOpenDialog(mainWindow, {
-    properties: ['openFile', 'multiSelections'],
-    filters: [
-      { name: 'Video Files', extensions: ['mp4', 'mov', 'webm', 'mkv'] }
-    ]
-  });
-  return result.filePaths;
+app.on('before-quit', () => {
+  isQuitting = true;
 });
 
-app.whenReady().then(() => {
-  createMainWindow();
-  createTray();
-
-  app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createMainWindow();
-    else mainWindow.show();
-  });
-});
-
-app.on('window-all-closed', (e) => {
-  // Prevent app from quitting when windows close
-  e.preventDefault();
+app.on('will-quit', async (event) => {
+  if (!engine) return;
+  event.preventDefault();
+  try {
+    await engine.stop();
+    prober?.destroy();
+  } catch (error) {
+    log.warn('shutdown error:', error);
+  } finally {
+    engine = null;
+    app.quit();
+  }
 });

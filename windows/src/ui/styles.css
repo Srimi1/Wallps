@@ -1,19 +1,32 @@
+/*
+ * Design tokens, kept in step with Wallps/UI/DesignSystem.swift so the Windows
+ * and macOS builds are the same product rather than two lookalikes. The Swift
+ * side declares these as floating-point sRGB components; the hex values here
+ * are those exact colours.
+ */
 :root {
-  --bg: #050508;
-  --bg-secondary: #09090d;
+  --bg: #08080a;                                  /* Theme.background */
+  --bg-secondary: #0f0f14;                        /* Theme.backgroundSecondary */
   --surface: rgba(255, 255, 255, 0.04);
   --surface-hover: rgba(255, 255, 255, 0.08);
-  --surface-elevated: rgba(18, 18, 24, 0.85);
-  --cyber-cyan: #33d6ff;
+  --surface-active: rgba(255, 255, 255, 0.12);
+  --surface-elevated: rgba(23, 23, 31, 0.85);
+  --media-well: #0a0a0f;                          /* Theme.mediaWell */
+  --cyber-cyan: #33d9ff;
   --cyber-purple: #a659ff;
   --neon-emerald: #33f2a6;
-  --solar-amber: #ffaa33;
+  --solar-amber: #ffa633;
+  --electric-blue: #408cff;
   --ink: #ffffff;
   --ink-secondary: rgba(255, 255, 255, 0.65);
   --ink-tertiary: rgba(255, 255, 255, 0.38);
+  --ink-quaternary: rgba(255, 255, 255, 0.20);
   --hairline: rgba(255, 255, 255, 0.09);
   --hairline-strong: rgba(255, 255, 255, 0.22);
-  --radius-card: 16px;
+  --radius-sm: 6px;
+  --radius-control: 10px;
+  --radius-card: 14px;
+  --radius-card-lg: 20px;
   --radius-pill: 9999px;
 }
 
@@ -661,3 +674,263 @@ body {
 
 .spec-label { color: var(--ink-secondary); }
 .spec-val { font-family: monospace; color: var(--ink); font-weight: 500; }
+
+/* ==========================================================================
+   Components added when the renderer was wired to real data: empty states,
+   the import drop target, the error toast, and the settings pane.
+   ========================================================================== */
+
+.tab-view {
+  /* Each tab owns its own vertical rhythm. Before the views were wrapped in a
+     section, .main-content's gap spaced the hero from the filter bar directly;
+     now that gap has to live here or the two collide. */
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Beats the [hidden] user-agent rule, which `display: flex` above would win. */
+.tab-view[hidden] {
+  display: none;
+}
+
+/* --- Empty states ------------------------------------------------------- */
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 64px 24px;
+  text-align: center;
+  border: 1px dashed var(--hairline-strong);
+  border-radius: var(--radius-card-lg);
+  background: var(--surface);
+  margin: 8px 0 24px;
+}
+
+.empty-state .empty-glyph {
+  font-size: 34px;
+  opacity: 0.8;
+}
+
+.empty-state .empty-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.empty-state .empty-body {
+  font-size: 12px;
+  color: var(--ink-secondary);
+  max-width: 460px;
+  line-height: 1.55;
+}
+
+.empty-state code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 11px;
+  background: var(--surface-hover);
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+}
+
+/* --- Drop target -------------------------------------------------------- */
+
+.drop-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: rgba(0, 0, 0, 0.7);
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.drop-overlay.visible {
+  display: flex;
+}
+
+.drop-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 40px 56px;
+  border-radius: var(--radius-card-lg);
+  border: 1px solid var(--cyber-cyan);
+  background: var(--surface-elevated);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: 0 0 40px rgba(51, 217, 255, 0.25);
+}
+
+/* --- Toast -------------------------------------------------------------- */
+
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 92px;
+  transform: translateX(-50%) translateY(12px);
+  z-index: 70;
+  max-width: 560px;
+  padding: 12px 18px;
+  border-radius: var(--radius-control);
+  border: 1px solid var(--hairline-strong);
+  background: var(--surface-elevated);
+  backdrop-filter: blur(18px);
+  color: var(--ink);
+  font-size: 12.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease, transform 180ms ease;
+}
+
+.toast.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+.toast.error {
+  border-color: rgba(255, 106, 106, 0.55);
+}
+
+.toast.success {
+  border-color: rgba(51, 242, 166, 0.5);
+}
+
+/* --- Settings ----------------------------------------------------------- */
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 18px;
+  padding-bottom: 28px;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px;
+  border-radius: var(--radius-card);
+  border: 1px solid var(--hairline);
+  background: var(--surface);
+}
+
+.settings-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.settings-row-stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.settings-label {
+  color: var(--ink-secondary);
+}
+
+.settings-input {
+  background: var(--bg-secondary);
+  border: 1px solid var(--hairline);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  padding: 6px 8px;
+  font-size: 12px;
+  min-width: 140px;
+}
+
+.settings-row-stacked .settings-input {
+  width: 100%;
+}
+
+.settings-input:focus {
+  outline: none;
+  border-color: var(--cyber-cyan);
+}
+
+.settings-hint {
+  font-size: 11.5px;
+  color: var(--ink-tertiary);
+  line-height: 1.55;
+}
+
+.settings-hint code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  background: var(--surface-hover);
+  padding: 1px 5px;
+  border-radius: var(--radius-sm);
+}
+
+.settings-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 2px;
+}
+
+input[type="checkbox"] {
+  accent-color: var(--cyber-cyan);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
+}
+
+input[type="range"] {
+  accent-color: var(--cyber-cyan);
+  cursor: pointer;
+}
+
+/* --- Card extras -------------------------------------------------------- */
+
+.card-warning {
+  color: var(--solar-amber);
+}
+
+.card-artwork .thumb-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  background: var(--media-well);
+  font-size: 26px;
+  opacity: 0.5;
+}
+
+.btn-danger {
+  color: #ff8080;
+}
+
+.card-progress {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.65);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/*
+ * .btn-apply is sized for the card hover row, where `flex: 1` makes it fill the
+ * available width. Standing alone in the hero it must size to its own label
+ * instead, or "Add Video…" stretches across the whole header.
+ */
+.hero-section .btn-apply {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  font-size: 13px;
+}

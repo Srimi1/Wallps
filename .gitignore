@@ -17,6 +17,10 @@
 ruvector.db
 ruvector.db-*
 
+# Node / Electron (windows/)
+node_modules/
+npm-debug.log*
+
 # Xcode / Swift
 Wallps.xcodeproj/
 build/
