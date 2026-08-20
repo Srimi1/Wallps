@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "wallpapers": [
+    {
+      "id": "example-aurora",
+      "title": "Aurora Over Fjord",
+      "category": "Nature",
+      "preview": "https://example.com/previews/aurora.jpg",
+      "video": "https://example.com/videos/aurora.mp4",
+      "resolution": "3840×2160",
+      "credit": "Example Author",
+      "license": "CC0-1.0",
+      "bytes": 48123904
+    },
+    {
+      "id": "example-neon",
+      "title": "Neon Street",
+      "category": "City",
+      "preview": "https://example.com/previews/neon.jpg",
+      "video": "https://example.com/videos/neon.mp4",
+      "resolution": "3840×2160",
+      "credit": "Example Author",
+      "license": "CC-BY-4.0",
+      "bytes": 61204480
+    }
+  ]
+}

@@ -1,0 +1,33 @@
+# Ruflo local secrets and runtime data
+.env
+.env.local
+.env.*.local
+.claude-flow/data/
+.claude-flow/logs/
+.claude-flow/sessions/
+
+# Codex local configuration
+.codex/
+
+# Agent-tooling runtime state — local to a machine, not part of the app
+.claude/
+.claude-flow/
+.swarm/
+.agents/
+ruvector.db
+ruvector.db-*
+
+# Xcode / Swift
+Wallps.xcodeproj/
+build/
+DerivedData/
+.build/
+*.xcuserstate
+xcuserdata/
+*.moved-aside
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+*.mode2v3
+*.perspectivev3
+.DS_Store

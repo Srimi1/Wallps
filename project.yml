@@ -1,0 +1,61 @@
+name: Wallps
+options:
+  bundleIdPrefix: app.wallps
+  deploymentTarget:
+    macOS: "14.0"
+  createIntermediateGroups: true
+  xcodeVersion: "16.0"
+
+settings:
+  base:
+    MARKETING_VERSION: 0.1.0
+    CURRENT_PROJECT_VERSION: 1
+    SWIFT_VERSION: "5.0"
+    ENABLE_HARDENED_RUNTIME: YES
+    CODE_SIGN_IDENTITY: "-"
+    CODE_SIGN_STYLE: Automatic
+    DEVELOPMENT_TEAM: ""
+
+targets:
+  Wallps:
+    type: application
+    platform: macOS
+    sources:
+      - path: Wallps
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.wallps.Wallps
+        GENERATE_INFOPLIST_FILE: YES
+        INFOPLIST_KEY_LSUIElement: YES
+        INFOPLIST_KEY_LSApplicationCategoryType: public.app-category.entertainment
+        INFOPLIST_KEY_NSHumanReadableCopyright: "© Wallps contributors. Apache-2.0."
+        INFOPLIST_KEY_NSPrincipalClass: NSApplication
+        COMBINE_HIDPI_IMAGES: YES
+        CODE_SIGN_ENTITLEMENTS: Wallps/Wallps.entitlements
+
+  WallpsTests:
+    type: bundle.unit-test
+    platform: macOS
+    sources:
+      - path: Tests/WallpsTests
+    dependencies:
+      - target: Wallps
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.wallps.WallpsTests
+        GENERATE_INFOPLIST_FILE: YES
+
+schemes:
+  Wallps:
+    build:
+      targets:
+        Wallps: all
+        WallpsTests: [test]
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - WallpsTests
+    archive:
+      config: Release
