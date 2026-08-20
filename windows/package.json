@@ -1,0 +1,56 @@
+{
+  "name": "wallps",
+  "productName": "Wallps",
+  "version": "1.0.0",
+  "description": "Ultra-Minimal 4K Live Video Wallpapers for Windows & macOS",
+  "main": "src/main/main.js",
+  "author": "Wallps Contributors",
+  "license": "Apache-2.0",
+  "scripts": {
+    "start": "electron .",
+    "build:win": "electron-builder --win",
+    "build:portable": "electron-builder --win portable",
+    "build:nsis": "electron-builder --win nsis"
+  },
+  "devDependencies": {
+    "electron": "^31.0.0",
+    "electron-builder": "^24.13.3"
+  },
+  "build": {
+    "appId": "app.wallps.wallps",
+    "productName": "Wallps",
+    "copyright": "Copyright © 2026 Wallps contributors. Apache-2.0",
+    "directories": {
+      "output": "../build/windows"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
+        }
+      ],
+      "icon": "assets/icon.ico",
+      "artifactName": "${productName}-${version}-${arch}.${ext}",
+      "publisherName": "Wallps Contributors"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Wallps"
+    },
+    "portable": {
+      "artifactName": "${productName}-Portable-${version}-x64.exe"
+    }
+  }
+}

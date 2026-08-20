@@ -4,31 +4,32 @@
 
 # Wallps
 
-**Ultra-Minimal 4K Live Video Wallpapers for macOS.**  
+**Ultra-Minimal 4K Live Video Wallpapers for macOS & Windows.**  
 *Native, hardware-accelerated, battery-aware, and 100% telemetry-free.*
 
 [![macOS](https://img.shields.io/badge/macOS-14.0%20%7C%2026.0%2B-black?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/Srimi1/Wallps/releases)
+[![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/Srimi1/Wallps/releases)
 [![Apple Silicon](https://img.shields.io/badge/Apple%20Silicon-M1%20%7C%20M2%20%7C%20M3%20%7C%20M4-007AFF?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/Srimi1/Wallps/releases)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](LICENSE)
 [![Zero Telemetry](https://img.shields.io/badge/Privacy-Zero%20Telemetry-00C7BE?style=for-the-badge)](SECURITY.md)
 [![Release](https://img.shields.io/badge/Release-v1.0.0%20(Official%20Stable)-34C759?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/Srimi1/Wallps/releases/tag/v1.0.0)
 
-[**Download Wallps 1.0 DMG**](https://github.com/Srimi1/Wallps/releases/tag/v1.0.0) • [**Launch Keynote**](KEYNOTE.md) • [**Release Notes**](CHANGELOG.md) • [**Verification Report**](docs/RELEASE_VERIFICATION_REPORT.md) • [**Security Policy**](SECURITY.md)
+[** Download macOS (.DMG)**](https://github.com/Srimi1/Wallps/releases/tag/v1.0.0) • [**⊞ Download Windows (.EXE)**](https://github.com/Srimi1/Wallps/releases/tag/v1.0.0) • [**Launch Keynote**](KEYNOTE.md) • [**Release Notes**](CHANGELOG.md) • [**Verification Report**](docs/RELEASE_VERIFICATION_REPORT.md)
 
 </div>
 
 ---
 
 > [!TIP]
-> **🎉 Wallps 1.0 Official Launch**: Read our official [Launch Keynote](KEYNOTE.md) to explore the design philosophy, 1-click instant switching, and the Quantum Prism engine!
+> **🎉 Wallps 1.0 Multi-Platform Launch**: Wallps is now available for both **macOS (DMG)** and **Windows (EXE)** with 1-click instant switching and the Quantum Prism engine! Read our [Launch Keynote](KEYNOTE.md).
 
 ---
 
 ## ✨ Overview
 
-**Wallps** is an open-source live wallpaper engine built natively for macOS with SwiftUI and AVFoundation. It seamlessly renders smooth 4K/8K looping videos behind your desktop icons with minimal CPU & GPU footprint, and gets out of the way instantly when covered by windows or on battery power.
+**Wallps** is an open-source live wallpaper engine built natively for macOS with SwiftUI and AVFoundation, with a Windows version powered by Electron. It seamlessly renders smooth 4K/8K looping videos behind your desktop icons with minimal CPU & GPU footprint, and gets out of the way instantly when covered by windows or on battery power.
 
-Inspired by modern futuristic minimalism, Wallps combines an **iOS 26 Multi-Dimensional Classification Matrix**, signature **beam-glow borders**, and an interactive **macOS Desktop Simulator**.
+Inspired by modern futuristic minimalism, Wallps combines an **iOS 26 Multi-Dimensional Classification Matrix**, signature **beam-glow borders**, and an interactive **Desktop Simulator**.
 
 ---
 
@@ -42,7 +43,7 @@ Explore thousands of high-definition video wallpapers with real-time hardware de
 ---
 
 ### 2. Wallpaper Cinema & Desktop Simulator HUD
-Preview how any live wallpaper looks beneath your actual macOS Top Menu Bar, Bottom Dock, and Desktop icons on Studio Display or MacBook screens before applying.
+Preview how any live wallpaper looks beneath your actual macOS Top Menu Bar, Bottom Dock, and Desktop icons on Studio Display or MacBook screens before applying. Windows Desktop Simulator coming soon.
 
 ![Desktop Simulator & Inspector](docs/assets/desktop_simulator.png)
 
@@ -68,7 +69,7 @@ Drag and drop your own personal H.264/HEVC/ProRes clips into the library. Assign
 - **Hardware-Accelerated Decoding**: Leverages Apple Silicon Media Engine (`VideoToolbox` & `AVFoundation`) for fluid 60 FPS playback at negligible CPU cost.
 - **Intelligent Battery & Occlusion Awareness**: Automatically stops decoding video when windows cover the desktop, on battery power, in Low Power Mode, or when displays sleep.
 - **iOS 26 Multi-Dimensional Classification**: Smart filtering across categories (*Cyberpunk, Nature, Anime, Minimalist, Cars, Sci-Fi, Rain*), atmosphere moods, and display resolutions.
-- **Live Desktop & Lock Screen Simulator**: Built-in simulator HUD to test visual harmony with macOS system UI.
+- **Live Desktop & Lock Screen Simulator**: Built-in simulator HUD to test visual harmony with macOS system UI. Windows version in development.
 - **Multi-Monitor Support**: Independent per-screen video wallpaper assignment or synchronized playback across all screens.
 - **Zero Telemetry & 100% Private**: No analytics, no accounts, no background tracking.
 
@@ -100,32 +101,43 @@ level 0             your apps
 
 ## 🚀 Download & Installation
 
-### Option 1: Download Pre-built DMG (Recommended)
-Download the latest `.dmg` release from [Releases](https://github.com/Srimi1/Wallps/releases). Mount the disk image and drag **Wallps.app** to your `/Applications` folder.
+### Option 1: Download Pre-built Release (Recommended)
+**macOS:** Download the latest `.dmg` from [Releases](https://github.com/Srimi1/Wallps/releases). Mount the disk image and drag **Wallps.app** to your `/Applications` folder.
+
+**Windows:** Download the latest `.exe` installer or portable build from [Releases](https://github.com/Srimi1/Wallps/releases). Run the installer and follow the setup wizard.
 
 ### Option 2: Build from Source
 
-**Requirements:**
+**macOS Requirements:**
 - macOS 14.0 (Sonoma) or later (fully verified on macOS 26)
 - Xcode 16.0+
 - Apple Silicon or Intel Mac
+
+**Windows Requirements:**
+- Windows 10 or Windows 11
+- Node.js 18+
 
 ```sh
 # Clone repository
 git clone https://github.com/Srimi1/Wallps.git
 cd Wallps
 
-# Bootstrap & generate Xcode project
+# macOS: Bootstrap & generate Xcode project
 make bootstrap
 
-# Build and run the app
+# macOS: Build and run the app
 make run
 
-# Build the release DMG installer
+# macOS: Build the release DMG installer
 make dmg
+
+# Windows: Install dependencies and build
+cd windows
+npm install
+npm run build:win
 ```
 
-The resulting DMG installer is output to `build/Wallps.dmg`.
+The resulting DMG installer is output to `build/Wallps.dmg` (macOS) and `build/windows/` (Windows).
 
 ---
 

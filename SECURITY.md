@@ -1,6 +1,6 @@
 # Security & Privacy Policy
 
-The **Wallps** project is committed to providing a secure, privacy-first live wallpaper experience for macOS.
+The **Wallps** project is committed to providing a secure, privacy-first live wallpaper experience for macOS and Windows.
 
 ---
 
@@ -10,6 +10,7 @@ The **Wallps** project is committed to providing a secure, privacy-first live wa
 | ------- | ------------------ | ---------------- |
 | 0.1.x / Latest Release | :white_check_mark: | Active           |
 | macOS 14.0+ (Sonoma, Sequoia, macOS 26) | :white_check_mark: | Active           |
+| Windows 10 / Windows 11 | :white_check_mark: | Active           |
 
 ---
 
@@ -22,8 +23,9 @@ Wallps operates under strict privacy and security principles:
    - No user identity, IP address, browsing behavior, or hardware identifiers are logged or sent to any server.
 
 2. **Local-First Storage**:
-   - All imported video files and thumbnail caches are stored strictly locally on your Mac inside:
-     `~/Library/Application Support/Wallps/`
+   - All imported video files and thumbnail caches are stored strictly locally on your machine inside:
+     - **macOS:** `~/Library/Application Support/Wallps/`
+     - **Windows:** `%APPDATA%\Wallps\`
    - Wallps never uploads your local files to the cloud.
 
 3. **Restricted System Permissions**:
@@ -47,6 +49,6 @@ Instead, please report it confidentially via GitHub Security Advisories or by em
 Please include:
 - A description of the issue and potential impact.
 - Steps to reproduce the issue or proof-of-concept.
-- Your macOS version and device architecture (Apple Silicon / Intel).
+- Your OS version (macOS / Windows) and device architecture (Apple Silicon / Intel / x64).
 
 We will acknowledge receipt within 48 hours and work with you on a responsible disclosure timeline.

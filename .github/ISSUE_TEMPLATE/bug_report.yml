@@ -16,11 +16,11 @@ body:
     validations:
       required: true
   - type: input
-    id: macos-version
+    id: os-version
     attributes:
-      label: macOS Version & Hardware
-      description: e.g. macOS 14.6 / macOS 26 on Apple Silicon M3 Max
-      placeholder: macOS 14.6 Sonoma, Apple Silicon M2
+      label: OS Version & Hardware
+      description: e.g. macOS 14.6 / macOS 26 on Apple Silicon M3 Max, or Windows 11 on Intel i7
+      placeholder: macOS 14.6 Sonoma, Apple Silicon M2 / Windows 11, x64
     validations:
       required: true
   - type: textarea

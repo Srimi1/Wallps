@@ -14,3 +14,4 @@ Please describe the changes in this pull request and the rationale behind them.
 - [ ] Run `make test` — all unit tests pass
 - [ ] Run `make build` — zero compiler warnings
 - [ ] Tested on macOS 14+ / Apple Silicon
+- [ ] Tested on Windows 10/11 / x64 (if Windows code changed)

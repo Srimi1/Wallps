@@ -5,12 +5,13 @@
 <img src="docs/assets/app_icon.png" width="160" height="160" alt="Wallps 1.0 Icon" style="border-radius: 36px; margin-bottom: 12px; box-shadow: 0 20px 40px rgba(0,0,0,0.6);" />
 
 # Introducing Wallps 1.0
-### *The Next Generation 4K Live Wallpaper Experience for macOS*
+### *The Next Generation 4K Live Wallpaper Experience for macOS & Windows*
 
-**Universal Release · Native Apple Silicon & Intel · Zero Telemetry · Open Source**
+**Universal Release · Native Apple Silicon & Intel · Windows 10/11 · Zero Telemetry · Open Source**
 
 [![Version](https://img.shields.io/badge/Version-1.0.0%20GA-34C759?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/Srimi1/Wallps/releases/tag/v1.0.0)
 [![macOS](https://img.shields.io/badge/macOS-14.0%20%7C%2026.0%2B-black?style=for-the-badge&logo=apple&logoColor=white)](https://github.com/Srimi1/Wallps/releases/tag/v1.0.0)
+[![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-0078D4?style=for-the-badge&logo=windows&logoColor=white)](https://github.com/Srimi1/Wallps/releases/tag/v1.0.0)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](LICENSE)
 
 [**Download Wallps 1.0 (.DMG)**](https://github.com/Srimi1/Wallps/releases/tag/v1.0.0) • [**Source Code**](https://github.com/Srimi1/Wallps) • [**Verification Report**](docs/RELEASE_VERIFICATION_REPORT.md)
@@ -21,11 +22,11 @@
 
 ## 🌟 The Vision
 
-Your Mac desktop is the canvas you look at every single day. For too long, live wallpaper software on macOS has suffered from three major flaws: **high battery drain**, **bloated, complex interfaces**, and **invasive tracking**.
+Your desktop is the canvas you look at every single day. For too long, live wallpaper software has suffered from three major flaws: **high battery drain**, **bloated, complex interfaces**, and **invasive tracking**.
 
 **Wallps 1.0** changes everything. 
 
-Built strictly from the ground up for macOS using native **SwiftUI**, **Metal**, and **VideoToolbox**, Wallps delivers stunning 4K and 8K motion wallpapers that feel like a native part of macOS. It plays fluidly at 60 FPS when you are looking at it, and instantly vanishes to 0% CPU the moment your windows cover it or when you run on battery.
+Built strictly from the ground up for macOS using native **SwiftUI**, **Metal**, and **VideoToolbox**, and for Windows using **Electron** with hardware-accelerated playback, Wallps delivers stunning 4K and 8K motion wallpapers that feel like a native part of your OS. It plays fluidly at 60 FPS when you are looking at it, and instantly vanishes to 0% CPU the moment your windows cover it or when you run on battery.
 
 ---
 
@@ -41,7 +42,7 @@ Navigate through thousands of curated wallpapers effortlessly. Filter across thr
 - **Sort & Flow**: *Trending, Newest Drops, Highest Resolution*
 
 ### 3. 🖥️ Wallpaper Cinema & Live Desktop Simulator
-Never guess how a wallpaper will look beneath your apps again. The built-in **macOS Desktop Simulator** lets you preview any artwork underneath realistic macOS Menu Bars, Docks, and Desktop Icons before applying.
+Never guess how a wallpaper will look beneath your apps again. The built-in **Desktop Simulator** lets you preview any artwork underneath realistic macOS Menu Bars, Docks, and Desktop Icons before applying. Windows Desktop Simulator coming in the next update.
 
 ### 4. 🔋 Battery-Aware Occlusion Engine
 Wallps places a transparent, click-through window at the desktop window level (`CGWindowLevelForKey(.desktopWindow)`). Using dual-signal occlusion detection, the engine pauses decoding whenever:
@@ -75,23 +76,34 @@ A custom icon rendered across all display resolutions ($16\times16$ to $1024\tim
 - **Zero Telemetry**: No tracking, no user profiles, no network snooping.
 - **Strict Hardened Runtime**: Sandboxed with minimal entitlements (`app-sandbox`, `user-selected.read-only`, `network.client`).
 - **No Screen Recording Permissions Required**: Checks window geometry layers with zero pixel scraping.
-- **Local-First Storage**: Your imported videos stay strictly on your Mac.
+- **Local-First Storage**: Your imported videos stay strictly on your local machine.
 
 ---
 
 ## 📥 Get Wallps 1.0 Today
 
-### 1. Download DMG Installer
-Download the verified, pre-built disk image from the [v1.0.0 Release Page](https://github.com/Srimi1/Wallps/releases/tag/v1.0.0).
+### 1. Download Installer
+**macOS:** Download the verified `.dmg` from the [v1.0.0 Release Page](https://github.com/Srimi1/Wallps/releases/tag/v1.0.0).
+
+**Windows:** Download the `.exe` installer or portable build from the [v1.0.0 Release Page](https://github.com/Srimi1/Wallps/releases/tag/v1.0.0).
 
 ### 2. Install & Run
-Open `Wallps.dmg` and drag `Wallps.app` to your `/Applications` folder.
+**macOS:** Open `Wallps.dmg` and drag `Wallps.app` to your `/Applications` folder.
+
+**Windows:** Run the installer and follow the setup wizard, or use the portable `.exe`.
 
 ```sh
 # Or build directly from source:
 git clone https://github.com/Srimi1/Wallps.git
 cd Wallps
+
+# macOS
 make run
+
+# Windows
+cd windows
+npm install
+npm start
 ```
 
 ---

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wallps — 4K Live Wallpapers</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Frameless Titlebar -->
+  <div class="titlebar">
+    <div class="titlebar-brand">
+      <img src="../../assets/icon.ico" alt="Wallps" />
+      <span class="brand-text">WALLPS</span>
+      <span class="pro-badge">PRO</span>
+    </div>
+
+    <div class="nav-tabs">
+      <div class="nav-tab active">
+        <span>✨</span> Explore Gallery
+      </div>
+      <div class="nav-tab">
+        <span>📁</span> My Wallpapers
+      </div>
+    </div>
+
+    <div class="window-controls">
+      <div class="win-btn" id="minBtn" title="Minimize">🗕</div>
+      <div class="win-btn close" id="closeBtn" title="Close to Tray">✕</div>
+    </div>
+  </div>
+
+  <!-- Main Scrollable Area -->
+  <div class="main-content">
+    
+    <!-- Hero Banner -->
+    <div class="hero-section">
+      <div>
+        <div class="hero-meta">
+          <span class="hero-tag">LIVE 4K GALLERY</span>
+          <span class="hero-badge">● WINDOWS 11 & 10 READY</span>
+        </div>
+        <h1 class="hero-title">Curated 4K Live Wallpapers</h1>
+        <p class="hero-desc">Ultra-high definition video backgrounds with hardware-accelerated decoding & battery-aware occlusion.</p>
+      </div>
+
+      <div class="stats-card">
+        <div class="stats-number">2,719</div>
+        <div class="stats-label">CURATED ASSETS</div>
+      </div>
+    </div>
+
+    <!-- iOS 26 Classification Bar -->
+    <div class="classification-bar">
+      <div class="search-box">
+        <span>🔍</span>
+        <input type="text" id="searchInput" placeholder="Search 4K live wallpapers…" />
+      </div>
+
+      <div class="category-track" id="categoryTrack"></div>
+
+      <button class="filter-btn" onclick="toggleFilterDrawer()">
+        <span>⚙️</span> Filters
+      </button>
+    </div>
+
+    <!-- Expanded Multi-Dimensional Matrix Drawer -->
+    <div class="matrix-drawer" id="matrixDrawer" style="display: none;">
+      <div>
+        <div class="matrix-col-title">✨ ATMOSPHERE & MOOD</div>
+        <div class="matrix-tokens">
+          <div class="matrix-chip" onclick="selectMood('Neon Glow')">Neon Glow</div>
+          <div class="matrix-chip" onclick="selectMood('Obsidian Dark')">Obsidian Dark</div>
+          <div class="matrix-chip" onclick="selectMood('Misty Rain')">Misty Rain</div>
+          <div class="matrix-chip" onclick="selectMood('Chill Lofi')">Chill Lofi</div>
+          <div class="matrix-chip" onclick="selectMood('Cosmic Void')">Cosmic Void</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="matrix-col-title">🖥️ DISPLAY & SPECS</div>
+        <div class="matrix-tokens">
+          <div class="matrix-chip" onclick="selectRes('8K Ultra')">8K Ultra</div>
+          <div class="matrix-chip" onclick="selectRes('4K XDR')">4K XDR</div>
+          <div class="matrix-chip" onclick="selectRes('4K UHD')">4K UHD</div>
+        </div>
+      </div>
+
+      <div>
+        <div class="matrix-col-title">⇅ SORT & FLOW</div>
+        <div class="matrix-tokens">
+          <div class="matrix-chip active">Trending</div>
+          <div class="matrix-chip">Newest Drops</div>
+          <div class="matrix-chip">Highest Resolution</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cards Grid -->
+    <div class="cards-grid" id="cardsGrid"></div>
+
+  </div>
+
+  <!-- Persistent Active Wallpaper Dock -->
+  <div class="active-dock" id="activeDock"></div>
+
+  <!-- Wallpaper Cinema Inspector & Simulator Modal -->
+  <div class="modal-backdrop" id="inspectorModal" style="display: none;">
+    <div class="inspector-modal">
+      <div class="inspector-header">
+        <div style="display: flex; gap: 8px;">
+          <span class="badge-tag cyan">4K XDR</span>
+          <span class="badge-tag emerald">60 FPS</span>
+        </div>
+
+        <div style="display: flex; gap: 4px; background: rgba(255,255,255,0.06); padding: 3px; border-radius: 99px;">
+          <button class="nav-tab active" id="simBtnWin" onclick="setSimMode('win11')">🪟 Windows 11 Desktop</button>
+          <button class="nav-tab" id="simBtnMac" onclick="setSimMode('mac')">🍎 macOS Desktop</button>
+        </div>
+
+        <button class="win-btn" onclick="closeInspector()" style="font-size: 14px;">✕</button>
+      </div>
+
+      <div class="inspector-body">
+        <div class="inspector-stage">
+          <video id="simVideo" autoplay loop muted playsinline style="width: 100%; height: 100%; object-fit: cover;"></video>
+          
+          <div class="simulator-overlay">
+            <div id="simMenubarMac" style="display: none; background: rgba(0,0,0,0.5); padding: 4px 12px; font-size: 11px; color: #fff; justify-content: space-between;">
+              <span> Finder File Edit View Window</span>
+              <span>10:42 PM</span>
+            </div>
+
+            <div class="sim-icons">
+              <div class="sim-icon-item">
+                <span style="font-size: 24px;">📁</span>
+                <span>Wallpapers</span>
+              </div>
+              <div class="sim-icon-item">
+                <span style="font-size: 24px;">💻</span>
+                <span>This PC</span>
+              </div>
+            </div>
+
+            <div class="sim-taskbar-win11" id="simTaskbarWin11">
+              <span>⊞</span>
+              <span>🔍</span>
+              <span>📁</span>
+              <span>🌐</span>
+              <span>⚙️</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="inspector-sidebar">
+          <div>
+            <h2 id="modalTitle" style="font-size: 16px; font-weight: 700; margin-bottom: 4px;"></h2>
+            <p id="modalArtist" style="font-size: 12px; color: var(--ink-secondary);"></p>
+          </div>
+
+          <div style="border-top: 1px solid var(--hairline); padding-top: 12px;">
+            <div style="font-size: 10px; font-family: monospace; font-weight: 700; color: var(--ink-tertiary); margin-bottom: 8px;">TECHNICAL DIAGNOSTICS</div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div class="spec-item"><span class="spec-label">Resolution</span><span class="spec-val" id="specRes"></span></div>
+              <div class="spec-item"><span class="spec-label">Framerate</span><span class="spec-val" id="specFps"></span></div>
+              <div class="spec-item"><span class="spec-label">Hardware Acceleration</span><span class="spec-val">DirectX 12 / D3D11</span></div>
+              <div class="spec-item"><span class="spec-label">File Size</span><span class="spec-val" id="specSize"></span></div>
+            </div>
+          </div>
+
+          <div style="margin-top: auto; display: flex; flex-direction: column; gap: 8px;">
+            <button class="btn-apply" id="modalApplyBtn" style="padding: 10px;" onclick="applyWallpaper(state.inspectingItem.id)">
+              ✨ Set as Live Wallpaper
+            </button>
+            <button class="dock-btn" style="justify-content: center; padding: 8px;" onclick="closeInspector()">
+              Close Simulator
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
