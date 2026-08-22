@@ -21,7 +21,7 @@ struct LibraryWindow: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // MARK: - Futuristic Top Bar (Wallper.app Floating Style)
+            // MARK: - Futuristic Top Bar (floating style)
             HStack(spacing: 16) {
                 // App Brand & Futuristic Badge
                 HStack(spacing: 8) {

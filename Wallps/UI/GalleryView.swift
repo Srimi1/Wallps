@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Futuristic Live Wallpaper Catalog inspired by Wallper.app & iOS 26.
+/// Futuristic live-wallpaper catalog: obsidian beam-glow surfaces over an iOS 26-style
+/// multi-dimensional classification matrix.
 struct GalleryView: View {
     @Environment(AppState.self) private var state
     @State private var search = ""
@@ -22,7 +23,7 @@ struct GalleryView: View {
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    // MARK: - Hero Header (Wallper.app Aesthetic)
+                    // MARK: - Hero Header
                     HeroHeaderView(totalWallpapers: filteredEntries.count)
 
                     // MARK: - iOS 26 Multi-Dimensional Classification & Filter Matrix

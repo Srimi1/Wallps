@@ -1,6 +1,7 @@
 import SwiftUI
 
-/// Futuristic Minimal design tokens inspired by Wallper.app & iOS 26.
+/// Futuristic-minimal design tokens: obsidian dark surfaces, beam-glow accents, and the
+/// iOS 26-era type and spacing scale.
 /// Monochrome obsidian foundation with laser-cut beam borders, ultra-thin
 /// frosted glass, and refined typography.
 enum Theme {
@@ -95,7 +96,7 @@ extension Font {
     static let monoMetric = Font.system(size: 11, weight: .semibold, design: .monospaced)
 }
 
-// MARK: - Animated Rotating Beam Border (Inspired by Wallper.app)
+// MARK: - Animated Rotating Beam Border
 
 /// Rotating conic gradient beam border effect that sweeps around the perimeter.
 struct BeamBorder: ViewModifier {

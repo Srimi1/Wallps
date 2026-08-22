@@ -1,0 +1,19 @@
+version: 2
+updates:
+  # Workflow actions — the only dependency the macOS build actually has, since the app
+  # itself is pure SwiftUI/AVFoundation with no package manager.
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "ci"
+
+  # The Windows build is Electron, so it has a real npm tree worth watching.
+  - package-ecosystem: "npm"
+    directory: "/windows"
+    schedule:
+      interval: "monthly"
+    commit-message:
+      prefix: "windows"
+    open-pull-requests-limit: 5
